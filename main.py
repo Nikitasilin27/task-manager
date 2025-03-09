@@ -1,6 +1,7 @@
 from fastapi import FastAPI, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
-from database import get_db, engine, Base
+from database import get_db, engine
+from models import Base
 from crud import get_tasks
 
 app = FastAPI()
