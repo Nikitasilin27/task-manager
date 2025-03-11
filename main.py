@@ -8,6 +8,7 @@ from fastapi.encoders import jsonable_encoder
 from pydantic import BaseModel
 from typing import Optional
 from datetime import datetime
+from fastapi import Body
 
 # Pydantic-модель для входящих данных при создании задачи
 class TaskCreate(BaseModel):
@@ -121,3 +122,14 @@ async def delete_task_endpoint(task_id: int, db: AsyncSession = Depends(get_db))
     except Exception as e:
         print(f"Error in delete_task: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Ошибка сервера: {str(e)}")
+
+
+class TaskUpdate(BaseModel):
+    completed: bool
+
+@app.patch("/tasks/{task_id}", response_model=TaskOut)
+async def update_task_endpoint(task_id: int, task_update: TaskUpdate, db: AsyncSession = Depends(get_db)):
+    updated_task = await update_task(db, task_id, task_update.completed)
+    if not updated_task:
+        raise HTTPException(status_code=404, detail="Задача не найдена")
+    return jsonable_encoder(updated_task)
