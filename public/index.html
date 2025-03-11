@@ -420,28 +420,6 @@
         });
       }
 
-      const modalCompleteBtn = document.getElementById('modalCompleteBtn');
-      if (modalCompleteBtn) {
-        modalCompleteBtn.addEventListener('click', function() {
-          if (currentTaskItem) {
-            let isCompleted = (currentTaskItem.dataset.completed === "true");
-            if (isCompleted) {
-              currentTaskItem.dataset.completed = "false";
-              currentTaskItem.querySelector('.checkbox').classList.remove('checked');
-              currentTaskItem.querySelector('.task-title').style.color = "#1e1e1e";
-              currentTaskItem.querySelector('.task-date').style.color = "#757575";
-              this.textContent = "Выполнить";
-            } else {
-              currentTaskItem.dataset.completed = "true";
-              currentTaskItem.querySelector('.checkbox').classList.add('checked');
-              currentTaskItem.querySelector('.task-title').style.color = "#D9D9D9";
-              currentTaskItem.querySelector('.task-date').style.color = "#D9D9D9";
-              this.textContent = "Вернуть";
-            }
-          }
-          closeModal();
-        });
-      }
 
       const modalSubmitBtn = document.getElementById('modalSubmitBtn');
       if (modalSubmitBtn) {
