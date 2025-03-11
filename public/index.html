@@ -1,114 +1,3 @@
-<!DOCTYPE html>
-<html lang="ru">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Task Manager Mini App</title>
-  <style>
-    /* Все существующие стили остаются, добавим только для кнопки удаления */
-    .delete-btn {
-      padding: 4px 8px;
-      background: #BD0935;
-      color: #fff;
-      border: none;
-      border-radius: 4px;
-      cursor: pointer;
-      margin-left: 8px;
-    }
-    .delete-btn:hover {
-      background: #A0072F;
-    }
-    /* Остальные стили остаются без изменений */
-    @import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&display=swap');
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Manrope', Arial, sans-serif; }
-    body {
-      padding: 0;
-      background: var(--tg-theme-secondary-bg-color, #f4f4f4);
-      color: var(--tg-theme-text-color, #1e1e1e);
-      min-height: 100vh;
-      display: flex;
-      justify-content: center;
-    }
-    .container { width: 100%; max-width: 100%; border-radius: 0; height: 100vh; overflow: hidden; box-shadow: none; background: var(--tg-theme-bg-color, #ffffff); position: relative; }
-    .header { height: 80px; background: var(--tg-theme-bg-color, #ffffff); display: flex; justify-content: space-between; align-items: center; padding: 16px; }
-    .user-section { display: flex; align-items: center; }
-    .avatar { width: 40px; height: 40px; background: #d3d3d3; border-radius: 50%; margin-right: 12px; }
-    .user-info .name { font-size: 18px; font-weight: 600; color: #1e1e1e; }
-    .user-info .username { font-size: 14px; font-weight: 500; color: #757575; }
-    .header .title { font-size: 20px; font-weight: 600; color: #1e1e1e; }
-    .date-container { padding: 16px; display: flex; justify-content: space-between; align-items: center; gap: 16px; }
-    .date-select, .day-select { height: 32px; border: 1px solid #d9d9d9; border-radius: 8px; display: flex; align-items: center; font-size: 16px; color: #1e1e1e; cursor: pointer; flex: 1; }
-    .date-select { padding: 0 8px; justify-content: space-between; }
-    .day-select { padding: 0 8px; justify-content: space-between; }
-    .date-select span, .day-select span { white-space: nowrap; }
-    .date-select .icon-container, .day-select .icon-container { width: 16px; height: 16px; display: flex; align-items: center; justify-content: center; }
-    .date-select .icon-container svg, .day-select .icon-container svg { width: 12px; height: 12px; }
-    .tabs { display: flex; padding: 8px 16px; overflow-x: auto; scrollbar-width: none; -ms-overflow-style: none; position: relative; }
-    .tabs::after { content: ''; position: absolute; right: 0; top: 0; width: 40px; height: 100%; background: linear-gradient(90deg, rgba(255,255,255,0) 0%, var(--tg-theme-bg-color, #ffffff) 100%); }
-    .tabs::-webkit-scrollbar { display: none; }
-    .tab { min-width: 40px; text-align: center; padding: 8px; margin-right: 8px; font-size: 14px; color: #757575; cursor: pointer; }
-    .tab.active { color: #ff5722; font-weight: 600; border-bottom: 2px solid #ff5722; }
-    .task-list { padding: 16px; }
-    .task-item { display: flex; align-items: flex-start; padding: 12px 0; cursor: pointer; transition: all 0.2s ease; border-bottom: 1px solid rgba(0,0,0,0.05); }
-    .task-item:hover { transform: translateX(4px); background: var(--tg-theme-secondary-bg-color, #f8f8f8); }
-    .task-item.completed .task-title { text-decoration: line-through; opacity: 0.6; }
-    .task-item.completed .task-date { color: #D9D9D9; }
-    .task-item .checkbox { width: 16px; height: 16px; border: 2px solid #757575; border-radius: 50%; position: relative; margin-right: 12px; margin-top: 2px; }
-    .task-item .checkbox[onclick] { cursor: pointer; }
-    .task-item .checkbox.checked { border-color: #1e1e1e; }
-    .task-item .checkbox .inner { width: 10px; height: 10px; background: #1e1e1e; border-radius: 50%; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); opacity: 0; transition: opacity 0.2s; }
-    .task-item .checkbox.checked .inner { opacity: 1; }
-    .task-item .task-info { flex: 1; }
-    .task-item .task-title { font-size: 16px; color: #1e1e1e; line-height: 140%; margin-bottom: 4px; }
-    .task-item .task-date { font-size: 16px; color: #757575; line-height: 140%; }
-    .task-item .priority { font-size: 14px; padding: 2px 8px; border-radius: 4px; margin-left: 8px; }
-    .priority-high { color: #BD0935; background: rgba(255, 0, 61, 0.15); }
-    .priority-medium { color: #BD5C0A; background: rgba(255, 190, 92, 0.3); }
-    .priority-low { color: #2D8B5D; background: rgba(50, 186, 118, 0.15); }
-    .add-button { position: sticky; bottom: 16px; padding-top: 20px; background: linear-gradient(180deg, rgba(var(--tg-theme-bg-color-rgb, 255,255,255), 0) 0%, rgba(var(--tg-theme-bg-color-rgb, 255,255,255), 1) 70%); text-align: center; }
-    .add-button button { display: inline-flex; align-items: center; justify-content: center; height: 50px; background: #2c2c2c; color: #fff; font-size: 16px; font-weight: 600; padding: 0 16px; border-radius: 12px; border: none; cursor: pointer; transition: background-color 0.2s; white-space: nowrap; }
-    .add-button button:hover { background-color: #1e1e1e; }
-    .backdrop { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.2); z-index: 999; }
-    .backdrop.active { display: block; }
-    .task-form { display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: #fff; padding: 20px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.2); width: 300px; z-index: 1000; animation: moveIn 300ms ease-out forwards; }
-    .task-form.active { display: block; }
-    @keyframes moveIn { from { transform: translate(-50%, 100%); } to { transform: translate(-50%, -50%); } }
-    @keyframes moveOut { from { transform: translate(-50%, -50%); } to { transform: translate(-50%, 100%); } }
-    .task-form.closing { animation: moveOut 300ms ease-out forwards; }
-    .task-form .header-form { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
-    .task-form .header-form .title { font-size: 18px; font-weight: 600; color: #1e1e1e; }
-    .task-form .header-form .close { width: 24px; height: 24px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
-    .task-form .header-form .close svg { fill: #757575; width: 12px; height: 12px; transition: fill 0.2s; }
-    .task-form .header-form .close:hover svg { fill: #1e1e1e; }
-    .task-form .form-row { margin-bottom: 12px; }
-    .task-form .form-row.task-input-row { display: flex; align-items: center; gap: 12px; }
-    .task-form .form-row input, .task-form .form-row textarea { width: 100%; padding: 8px; border: 1px solid #d9d9d9; border-radius: 8px; font-size: 14px; }
-    .task-form .form-row input::placeholder, .task-form .form-row textarea::placeholder { color: #757575; opacity: 0.7; }
-    .task-form .form-row textarea { height: 80px; resize: none; }
-    .task-form .form-row .complete-btn { padding: 6px 12px; background: rgba(54,151,241,0.15); border: none; border-radius: 4px; font-size: 14px; font-weight: 500; color: #348BDC; cursor: pointer; transition: background-color 0.2s; flex-shrink: 0; }
-    .task-form .form-row .complete-btn:hover { background-color: rgba(54,151,241,0.25); }
-    .task-form .form-row .time-select-btn { padding: 6px 12px; background: rgba(54,151,241,0.15); border: none; border-radius: 4px; font-size: 14px; font-weight: 500; color: #348BDC; cursor: pointer; transition: background-color 0.2s; flex-shrink: 0; }
-    .task-form .form-row .time-select-btn:hover { background-color: rgba(54,151,241,0.25); }
-    .task-form .form-row.reminder-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
-    .task-form .form-row.reminder-row .reminder-label { font-size: 14px; color: #757575; }
-    .task-form .form-row .toggle-switch { position: relative; width: 40px; height: 24px; }
-    .task-form .form-row .toggle-switch input { opacity: 0; width: 0; height: 0; }
-    .task-form .form-row .toggle-switch .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #d9d9d9; border-radius: 12px; transition: background-color 0.3s ease; }
-    .task-form .form-row .toggle-switch .slider:before { position: absolute; content: ""; height: 18px; width: 18px; left: 3px; bottom: 3px; background-color: #fff; border-radius: 50%; transition: transform 0.3s ease; }
-    .task-form .form-row .toggle-switch input:checked + .slider { background-color: #3697F1; }
-    .task-form .form-row .toggle-switch input:checked + .slider:before { transform: translateX(16px); }
-    .task-form .form-row.priority-row { display: flex; align-items: center; gap: 8px; margin-bottom: 16px; }
-    .task-form .form-row.priority-row .priority-label { font-size: 14px; color: #1e1e1e; }
-    .task-form .form-row.priority-row select { flex: 1; padding: 8px; border: 1px solid #d9d9d9; border-radius: 8px; font-size: 14px; appearance: none; background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 12 12"><path fill="%23757575" d="M2 4l4 4 4-4z"/></svg>') no-repeat right 8px center; }
-    .task-form .form-row.priority-row select option { padding: 2px 8px; border-radius: 3px; font-size: 14px; background-color: #FFFFFF; }
-    .task-form .form-row.priority-row select option[value="Высокий"] { color: #BD0935; border: 1px solid rgba(255, 0, 61, 0.15); }
-    .task-form .form-row.priority-row select option[value="Средний"] { color: #BD5C0A; border: 1px solid rgba(255, 190, 92, 0.3); }
-    .task-form .form-row.priority-row select option[value="Низкий"] { color: #2D8B5D; border: 1px solid rgba(50, 186, 118, 0.15); }
-    .task-form .submit-button { width: 100%; height: 50px; background: #2c2c2c; color: #fff; font-size: 16px; font-weight: 600; border: none; border-radius: 12px; cursor: pointer; transition: background-color 0.2s; }
-    .task-form .submit-button:hover { background-color: #1e1e1e; }
-    @media screen and (max-width: 401px) { .container { max-width: 315px; } .task-form { width: 280px; } }
-  </style>
-</head>
 <body>
   <div class="container">
     <div class="header">
@@ -183,9 +72,9 @@
       <div class="form-row priority-row">
         <span class="priority-label">Приоритет</span>
         <select id="modalTaskPriority">
-          <option value="Высокий">Высокий</option>
-          <option value="Средний">Средний</option>
-          <option value="Низкий">Низкий</option>
+          <option value="High">Высокий</option>
+          <option value="Medium" selected>Средний</option>
+          <option value="Low">Низкий</option>
         </select>
       </div>
       <div class="form-row">
@@ -368,7 +257,7 @@
           document.getElementById('modalTaskDate').value = formatDate(new Date());
           document.getElementById('modalTaskTime').value = "";
           document.getElementById('modalTaskReminder').checked = false;
-          document.getElementById('modalTaskPriority').value = "Высокий";
+          document.getElementById('modalTaskPriority').value = "Medium";
           document.getElementById('modalCompleteBtn').textContent = "Выполнить";
         }
       }
@@ -475,8 +364,8 @@
             currentTaskItem.querySelector('.task-date').textContent = deadline ? new Date(deadline).toLocaleString('ru-RU', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) : 'Без даты';
             const priorityDiv = currentTaskItem.querySelector('.priority');
             priorityDiv.className = 'priority';
-            if (priority === 'Высокий') priorityDiv.classList.add('priority-high');
-            else if (priority === 'Средний') priorityDiv.classList.add('priority-medium');
+            if (priority === 'High') priorityDiv.classList.add('priority-high');
+            else if (priority === 'Medium') priorityDiv.classList.add('priority-medium');
             else priorityDiv.classList.add('priority-low');
             priorityDiv.textContent = priority;
           } else {
@@ -493,13 +382,16 @@
                   completed: false
                 })
               });
-              if (!response.ok) throw new Error('Ошибка при создании задачи');
+              if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(`Ошибка ${response.status}: ${errorText}`);
+              }
               const newTask = await response.json();
               visibleTasks.push(newTask);
               renderTasks();
             } catch (error) {
               console.error('Ошибка при создании задачи:', error);
-              alert('Не удалось создать задачу. Проверьте бэкенд и CORS.');
+              alert(`Не удалось создать задачу: ${error.message}`);
             }
           }
           closeModal();
@@ -546,29 +438,31 @@
 
         const priorityElem = document.createElement('div');
         priorityElem.className = 'priority';
-        if (task.priority === 'Высокий') priorityElem.classList.add('priority-high');
-        else if (task.priority === 'Средний') priorityElem.classList.add('priority-medium');
+        if (task.priority === 'High') priorityElem.classList.add('priority-high');
+        else if (task.priority === 'Medium') priorityElem.classList.add('priority-medium');
         else priorityElem.classList.add('priority-low');
         priorityElem.textContent = task.priority;
 
-        // Добавляем кнопку "Удалить"
         const deleteBtn = document.createElement('button');
         deleteBtn.className = 'delete-btn';
         deleteBtn.textContent = 'Удалить';
         deleteBtn.addEventListener('click', async function(event) {
-          event.stopPropagation(); // Предотвращаем открытие модального окна
+          event.stopPropagation();
           const taskId = task.id;
           try {
             const response = await fetch(`https://task-manager-tj38.onrender.com/tasks/${taskId}`, {
               method: 'DELETE',
             });
-            if (!response.ok) throw new Error('Ошибка при удалении задачи');
+            if (!response.ok) {
+              const errorText = await response.text();
+              throw new Error(`Ошибка ${response.status}: ${errorText}`);
+            }
             const index = visibleTasks.findIndex(t => t.id === taskId);
             if (index !== -1) visibleTasks.splice(index, 1);
             renderTasks();
           } catch (error) {
             console.error('Ошибка при удалении задачи:', error);
-            alert('Не удалось удалить задачу. Проверьте бэкенд.');
+            alert(`Не удалось удалить задачу: ${error.message}`);
           }
         });
 
@@ -599,7 +493,10 @@
         try {
           const selectedDate = formatDate(currentSelectedDate);
           const response = await fetch(`https://task-manager-tj38.onrender.com/tasks?date=${selectedDate}`);
-          if (!response.ok) throw new Error('Ошибка при загрузке задач');
+          if (!response.ok) {
+            const errorText = await response.text();
+            throw new Error(`Ошибка ${response.status}: ${errorText}`);
+          }
           const tasks = await response.json();
           visibleTasks.length = 0;
           tasks.forEach(task => visibleTasks.push(task));
@@ -607,13 +504,11 @@
           console.log('Tasks loaded:', tasks);
         } catch (error) {
           console.error('Ошибка при загрузке задач:', error);
-          alert('Не удалось загрузить задачи. Проверьте бэкенд и CORS.');
+          alert(`Не удалось загрузить задачи: ${error.message}`);
         }
       }
 
       loadTasks();
     });
   </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'91e9535e89271d76',t:'MTc0MTY3ODAwOC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script>
 </body>
-</html>
