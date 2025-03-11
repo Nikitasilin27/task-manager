@@ -612,21 +612,7 @@ async function loadTasks() {
 }
 
     });
-    console.log(`Response status: ${response.status}`);
-    if (!response.ok) {
-      const errorText = await response.text();
-      throw new Error(`Ошибка ${response.status}: ${errorText}`);
-    }
-    const tasks = await response.json();
-    visibleTasks.length = 0;
-    tasks.forEach(task => visibleTasks.push(task));
-    renderTasks();
-    console.log('Tasks loaded:', tasks);
-  } catch (error) {
-    console.error('Ошибка при загрузке задач:', error);
-    alert(`Не удалось загрузить задачи: ${error.message}. Проверьте бэкенд. Откройте консоль (F12) для деталей.`);
-  }
-}
+
 
       loadTasks();
     });
