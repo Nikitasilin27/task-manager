@@ -33,13 +33,13 @@ class TaskOut(BaseModel):
 
 app = FastAPI()
 
-# Разрешаем CORS (обновите список allow_origins, если нужно)
+# Разрешаем CORS (укажите все домены, с которых вы обращаетесь к бэку)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
-        "https://task-manager-1-abs5.onrender.com",
-        "http://localhost",
-        "http://localhost:3000"
+        "https://task-manager-1-abs5.onrender.com",  # ваш фронтенд
+        "http://localhost",                         # можно убрать, если не тестируете локально
+        "http://localhost:3000"                     # можно убрать, если не тестируете локально
     ],
     allow_credentials=True,
     allow_methods=["*"],
@@ -48,16 +48,31 @@ app.add_middleware(
 
 @app.on_event("startup")
 async def startup():
-    # При старте пересоздаём таблицы
+    # При старте пересоздаём таблицы (учтите, что это стирает все данные при каждом запуске)
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.drop_all)
         await conn.run_sync(Base.metadata.create_all)
-    # Если в базе нет задач, создаём пару тестовых
+
+    # Создаём пару тестовых задач (только если база пуста)
     async for session in get_db():
         tasks = await get_tasks(session)
         if not tasks:
-            await create_task(session, title="Купить молоко", deadline="2025-03-11T12:00:00", priority="High", reminder=True, completed=False)
-            await create_task(session, title="Позвонить другу", deadline="2025-03-12T14:00:00", priority="Medium", reminder=False, completed=False)
+            await create_task(
+                session,
+                title="Купить молоко",
+                deadline="2025-03-11T12:00:00",
+                priority="High",
+                reminder=True,
+                completed=False
+            )
+            await create_task(
+                session,
+                title="Позвонить другу",
+                deadline="2025-03-12T14:00:00",
+                priority="Medium",
+                reminder=False,
+                completed=False
+            )
         break
 
 @app.get("/")
