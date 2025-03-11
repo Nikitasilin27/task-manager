@@ -7,33 +7,40 @@ from crud import get_tasks, create_task
 
 app = FastAPI()
 
+# Настройка CORS для фронтенда
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["https://task-manager-1-abs5.onrender.com"],
+    allow_origins=["https://task-manager-1-abs5.onrender.com"],  # URL фронтенда
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
+# Инициализация базы данных и начальных данных при старте
 @app.on_event("startup")
 async def startup():
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
-    async with get_db() as db:
-        tasks = await get_tasks(db)
-        if not tasks:
-            await create_task(db, title="Купить молоко", deadline="2025-03-11T12:00:00", priority="High", reminder=True, completed=False)
-            await create_task(db, title="Позвонить другу", deadline="2025-03-12T14:00:00", priority="Medium", reminder=False, completed=False)
+    # Получаем сессию вручную для инициализации тестовых данных
+    async for session in get_db():
+        tasks = await get_tasks(session)
+        if not tasks:  # Если задач нет, добавляем тестовые
+            await create_task(session, title="Купить молоко", deadline="2025-03-11T12:00:00", priority="High", reminder=True, completed=False)
+            await create_task(session, title="Позвонить другу", deadline="2025-03-12T14:00:00", priority="Medium", reminder=False, completed=False)
+        break  # Выходим после первой итерации, так как нам нужна одна сессия
 
+# Корневой эндпоинт
 @app.get("/")
 async def root():
     return {"message": "Добро пожаловать в Task Manager! Используйте /tasks для списка задач."}
 
+# Получение списка задач
 @app.get("/tasks")
 async def read_tasks(db: AsyncSession = Depends(get_db)):
     tasks = await get_tasks(db)
     return tasks
 
+# Создание новой задачи
 from pydantic import BaseModel
 from datetime import datetime
 
