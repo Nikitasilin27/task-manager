@@ -5,7 +5,8 @@ from database import get_db, engine
 from models import Base
 from crud import get_tasks, create_task, delete_task
 from fastapi.encoders import jsonable_encoder
-from pydantic import BaseModel, Optional
+from pydantic import BaseModel
+from typing import Optional
 from datetime import datetime
 
 # Pydantic-модель для входящих данных при создании задачи
