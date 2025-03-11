@@ -12,4 +12,5 @@ class Task(Base):
     deadline = Column(DateTime, nullable=True)
     priority = Column(String, nullable=False, default="Medium")
     reminder = Column(Boolean, default=False)
+    completed = Column(Boolean, default=False)
     created_at = Column(DateTime, default=datetime.datetime.utcnow)
