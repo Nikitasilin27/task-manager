@@ -418,6 +418,11 @@
             } else {
               document.getElementById('currentDay').textContent = dayName + '. ' + dayNum;
             }
+            // Перезагружаем задачи при выборе дня
+            currentSelectedDate = new Date(tab.dataset.date);
+            updateMonthDisplay(currentSelectedDate);
+            updateCurrentDayLabel();
+            loadTasks();
           });
           if (formatDate(date) === formatDate(selectedDate)) {
             tab.classList.add('active');
@@ -456,6 +461,7 @@
           updateMonthDisplay(selected);
           updateTabs(selected);
           updateCurrentDayLabel();
+          loadTasks();
         });
       }
 
@@ -467,6 +473,7 @@
           updateMonthDisplay(currentSelectedDate);
           updateTabs(currentSelectedDate);
           updateCurrentDayLabel();
+          loadTasks();
         });
       }
 
@@ -478,6 +485,7 @@
           updateMonthDisplay(currentSelectedDate);
           updateTabs(currentSelectedDate);
           updateCurrentDayLabel();
+          loadTasks();
         });
       }
 
@@ -736,7 +744,9 @@
 
       async function loadTasks() {
         try {
-          const response = await fetch('https://task-manager-tj38.onrender.com/tasks');
+          // Используем текущую выбранную дату в формате "YYYY-MM-DD"
+          const selectedDate = formatDate(currentSelectedDate);
+          const response = await fetch(`https://task-manager-tj38.onrender.com/tasks?date=${selectedDate}`);
           if (!response.ok) throw new Error('Ошибка при загрузке задач');
           const tasks = await response.json();
           visibleTasks.length = 0;
