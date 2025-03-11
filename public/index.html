@@ -508,25 +508,11 @@
         const checkbox = document.createElement('div');
         checkbox.className = 'checkbox';
         if (task.completed) checkbox.classList.add('checked');
-checkbox.addEventListener('click', async function(event) {
-  event.stopPropagation();
-  const newStatus = taskItem.dataset.completed === "true" ? false : true;
-  try {
-    const response = await fetch(`https://task-manager-tj38.onrender.com/tasks/${task.id}`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ completed: newStatus })
-    });
-    if (response.ok) {
-      taskItem.dataset.completed = newStatus;
-      taskItem.classList.toggle('completed', newStatus);
-      checkbox.classList.toggle('checked', newStatus);
-    }
-  } catch (error) {
-    console.error('Ошибка при обновлении задачи:', error);
-  }
-});
-
+        checkbox.addEventListener('click', function(event) {
+          event.stopPropagation();
+          taskItem.classList.toggle('completed');
+          checkbox.classList.toggle('checked');
+        });
         const inner = document.createElement('div');
         inner.className = 'inner';
         checkbox.appendChild(inner);
@@ -596,23 +582,30 @@ checkbox.addEventListener('click', async function(event) {
       }
 
 async function loadTasks() {
-  taskList.innerHTML = '<div class="spinner">Загрузка...</div>'; // или реализуйте skeleton
   try {
     const selectedDate = formatDate(currentSelectedDate);
-    const response = await fetch(`https://task-manager-tj38.onrender.com/tasks?date=${selectedDate}`);
-    if (!response.ok) throw new Error(await response.text());
+    console.log(`Fetching tasks for date: ${selectedDate}`);
+    const response = await fetch(`https://task-manager-tj38.onrender.com/tasks?date=${selectedDate}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+    console.log(`Response status: ${response.status}`);
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`Ошибка ${response.status}: ${errorText}`);
+    }
     const tasks = await response.json();
     visibleTasks.length = 0;
     tasks.forEach(task => visibleTasks.push(task));
     renderTasks();
+    console.log('Tasks loaded:', tasks);
   } catch (error) {
     console.error('Ошибка при загрузке задач:', error);
-    alert(`Не удалось загрузить задачи: ${error.message}`);
+    alert(`Не удалось загрузить задачи: ${error.message}. Проверьте бэкенд. Откройте консоль (F12) для деталей.`);
   }
 }
-
-    });
-
 
       loadTasks();
     });
