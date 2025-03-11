@@ -600,15 +600,17 @@
         });
       }
 
-      async function loadTasks() {
+async function loadTasks() {
   try {
     const selectedDate = formatDate(currentSelectedDate);
+    console.log(`Fetching tasks for date: ${selectedDate}`);
     const response = await fetch(`https://task-manager-tj38.onrender.com/tasks?date=${selectedDate}`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
       },
     });
+    console.log(`Response status: ${response.status}`);
     if (!response.ok) {
       const errorText = await response.text();
       throw new Error(`Ошибка ${response.status}: ${errorText}`);
@@ -620,7 +622,7 @@
     console.log('Tasks loaded:', tasks);
   } catch (error) {
     console.error('Ошибка при загрузке задач:', error);
-    alert(`Не удалось загрузить задачи: ${error.message}. Проверьте бэкенд и CORS.`);
+    alert(`Не удалось загрузить задачи: ${error.message}. Проверьте бэкенд. Откройте консоль (F12) для деталей.`);
   }
 }
 
