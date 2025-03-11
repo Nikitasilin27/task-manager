@@ -34,8 +34,8 @@ async def root():
     return {"message": "Добро пожаловать в Task Manager! Используйте /tasks для списка задач."}
 
 @app.get("/tasks")
-async def read_tasks(db: AsyncSession = Depends(get_db)):
-    tasks = await get_tasks(db)
+async def read_tasks(date: str = None, db: AsyncSession = Depends(get_db)):
+    tasks = await get_tasks(db, date=date)
     return tasks
 
 from pydantic import BaseModel
