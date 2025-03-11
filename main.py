@@ -36,16 +36,16 @@ app = FastAPI()
 # Настройка CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["https://task-manager-1-abs5.onrender.com"],  # Разрешаем только этот домен
+    allow_origins=["https://task-manager-1-abs5.onrender.com"],  # Разрешаем домен фронтенда
     allow_credentials=True,
-    allow_methods=["*"],  # Разрешаем все методы (GET, POST, DELETE и т.д.)
-    allow_headers=["*"],  # Разрешаем все заголовки
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 @app.on_event("startup")
 async def startup():
     async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.drop_all)
+        # Оставляем только создание таблиц, убираем drop_all
         await conn.run_sync(Base.metadata.create_all)
 
     async for session in get_db():
@@ -75,8 +75,11 @@ async def root():
 
 @app.get("/tasks", response_model=list[TaskOut])
 async def read_tasks(date: str = None, db: AsyncSession = Depends(get_db)):
-    tasks = await get_tasks(db, date=date)
-    return jsonable_encoder(tasks)
+    try:
+        tasks = await get_tasks(db, date=date)
+        return jsonable_encoder(tasks)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Ошибка сервера: {str(e)}")
 
 @app.post("/tasks", response_model=TaskOut)
 async def create_new_task(task: TaskCreate, db: AsyncSession = Depends(get_db)):
