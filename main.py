@@ -1,5 +1,6 @@
 from fastapi import FastAPI, Depends, HTTPException
-from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
+from fastapi.requests import Request
 from sqlalchemy.ext.asyncio import AsyncSession
 from database import get_db, engine
 from models import Base
@@ -8,12 +9,12 @@ from fastapi.encoders import jsonable_encoder
 from pydantic import BaseModel
 from datetime import datetime
 
-# Pydantic-модель для входящих данных при создании задачи
+# Pydantic-модель для входящих данных при создания задачи
 class TaskCreate(BaseModel):
     title: str
     description: str = None
     deadline: str = None  # Формат ISO, например, "2025-03-11T12:00:00"
-    priority: str = "Medium"  # Значения для бэкенда
+    priority: str = "Medium"
     reminder: bool = False
     completed: bool = False
 
@@ -33,40 +34,57 @@ class TaskOut(BaseModel):
 
 app = FastAPI()
 
-# Настройка CORS
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["https://task-manager-1-abs5.onrender.com", "http://localhost"],  # Указываем фронтенд
-    allow_credentials=True,
-    allow_methods=["*"],  # Разрешаем все методы
-    allow_headers=["*"],  # Разрешаем все заголовки
-)
+# Кастомный middleware для принудительного добавления CORS заголовков
+@app.middleware("http")
+async def add_cors_headers(request: Request, call_next):
+    # Проверяем, является ли запрос preflight (OPTIONS)
+    if request.method == "OPTIONS":
+        headers = {
+            "Access-Control-Allow-Origin": "https://task-manager-1-abs5.onrender.com",
+            "Access-Control-Allow-Methods": "GET, POST, DELETE, OPTIONS",
+            "Access-Control-Allow-Headers": "Content-Type, Authorization",
+            "Access-Control-Allow-Credentials": "true",
+            "Access-Control-Max-Age": "3600",  # Кэширование preflight запросов на 1 час
+        }
+        return JSONResponse(status_code=200, content={}, headers=headers)
+
+    # Обрабатываем основной запрос
+    response = await call_next(request)
+    
+    # Добавляем CORS заголовки ко всем ответам
+    response.headers["Access-Control-Allow-Origin"] = "https://task-manager-1-abs5.onrender.com"
+    response.headers["Access-Control-Allow-Methods"] = "GET, POST, DELETE, OPTIONS"
+    response.headers["Access-Control-Allow-Headers"] = "Content-Type, Authorization"
+    response.headers["Access-Control-Allow-Credentials"] = "true"
+    
+    return response
 
 @app.on_event("startup")
 async def startup():
-    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
-
-    async for session in get_db():
-        tasks = await get_tasks(session)
-        if not tasks:
-            await create_task(
-                session,
-                title="Купить молоко",
-                deadline="2025-03-11T12:00:00",
-                priority="High",
-                reminder=True,
-                completed=False
-            )
-            await create_task(
-                session,
-                title="Позвонить другу",
-                deadline="2025-03-12T14:00:00",
-                priority="Medium",
-                reminder=False,
-                completed=False
-            )
-        break
+    try:
+        async with engine.begin() as conn:
+            await conn.run_sync(Base.metadata.create_all)
+        async for session in get_db():
+            tasks = await get_tasks(session)
+            if not tasks:
+                await create_task(
+                    session,
+                    title="Купить молоко",
+                    deadline="2025-03-11T12:00:00",
+                    priority="High",
+                    reminder=True,
+                    completed=False
+                )
+                await create_task(
+                    session,
+                    title="Позвонить другу",
+                    deadline="2025-03-12T14:00:00",
+                    priority="Medium",
+                    reminder=False,
+                    completed=False
+                )
+    except Exception as e:
+        print(f"Ошибка при старте: {str(e)}")
 
 @app.get("/")
 async def root():
