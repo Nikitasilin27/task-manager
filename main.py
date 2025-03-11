@@ -2,7 +2,7 @@ from fastapi import FastAPI, Depends, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.ext.asyncio import AsyncSession
 from database import get_db, engine
-from models import Base, Task
+from models import Base
 from crud import get_tasks, create_task, delete_task
 from fastapi.encoders import jsonable_encoder
 from pydantic import BaseModel
@@ -33,27 +33,21 @@ class TaskOut(BaseModel):
 
 app = FastAPI()
 
-# Разрешаем CORS (укажите все домены, с которых вы обращаетесь к бэку)
+# Настройка CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "https://task-manager-1-abs5.onrender.com",  # ваш фронтенд
-        "http://localhost",                         # можно убрать, если не тестируете локально
-        "http://localhost:3000"                     # можно убрать, если не тестируете локально
-    ],
+    allow_origins=["https://task-manager-1-abs5.onrender.com"],  # Разрешаем только этот домен
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["*"],  # Разрешаем все методы (GET, POST, DELETE и т.д.)
+    allow_headers=["*"],  # Разрешаем все заголовки
 )
 
 @app.on_event("startup")
 async def startup():
-    # При старте пересоздаём таблицы (учтите, что это стирает все данные при каждом запуске)
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.drop_all)
         await conn.run_sync(Base.metadata.create_all)
 
-    # Создаём пару тестовых задач (только если база пуста)
     async for session in get_db():
         tasks = await get_tasks(session)
         if not tasks:
@@ -79,13 +73,11 @@ async def startup():
 async def root():
     return {"message": "Добро пожаловать в Task Manager! Используйте /tasks для списка задач."}
 
-# GET-эндпоинт для получения задач с фильтрацией по дате (формат YYYY-MM-DD)
 @app.get("/tasks", response_model=list[TaskOut])
 async def read_tasks(date: str = None, db: AsyncSession = Depends(get_db)):
     tasks = await get_tasks(db, date=date)
     return jsonable_encoder(tasks)
 
-# POST-эндпоинт для создания новой задачи
 @app.post("/tasks", response_model=TaskOut)
 async def create_new_task(task: TaskCreate, db: AsyncSession = Depends(get_db)):
     try:
@@ -102,7 +94,6 @@ async def create_new_task(task: TaskCreate, db: AsyncSession = Depends(get_db)):
     except Exception as e:
         raise HTTPException(status_code=400, detail=f"Ошибка при создании задачи: {str(e)}")
 
-# DELETE-эндпоинт для удаления задачи по id
 @app.delete("/tasks/{task_id}")
 async def delete_task_endpoint(task_id: int, db: AsyncSession = Depends(get_db)):
     task = await delete_task(db, task_id)
