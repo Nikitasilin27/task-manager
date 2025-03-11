@@ -1,4 +1,5 @@
 from fastapi import FastAPI, Depends, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from fastapi.requests import Request
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -37,10 +38,10 @@ app = FastAPI()
 # Настройка CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["https://task-manager-1-abs5.onrender.com", "http://localhost"],  # Указываем фронтенд
+    allow_origins=["https://task-manager-1-abs5.onrender.com", "http://localhost"],  # Явно указываем фронтенд
     allow_credentials=True,
-    allow_methods=["*"],  # Разрешаем все методы
-    allow_headers=["*"],  # Разрешаем все заголовки
+    allow_methods=["GET", "POST", "DELETE", "OPTIONS"],  # Указываем конкретные методы
+    allow_headers=["Content-Type", "Authorization"],  # Указываем нужные заголовки
 )
 
 
