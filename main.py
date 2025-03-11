@@ -34,30 +34,16 @@ class TaskOut(BaseModel):
 
 app = FastAPI()
 
-# Кастомный middleware для принудительного добавления CORS заголовков
-@app.middleware("http")
-async def add_cors_headers(request: Request, call_next):
-    # Проверяем, является ли запрос preflight (OPTIONS)
-    if request.method == "OPTIONS":
-        headers = {
-            "Access-Control-Allow-Origin": "https://task-manager-1-abs5.onrender.com",
-            "Access-Control-Allow-Methods": "GET, POST, DELETE, OPTIONS",
-            "Access-Control-Allow-Headers": "Content-Type, Authorization",
-            "Access-Control-Allow-Credentials": "true",
-            "Access-Control-Max-Age": "3600",  # Кэширование preflight запросов на 1 час
-        }
-        return JSONResponse(status_code=200, content={}, headers=headers)
+# Настройка CORS
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["https://task-manager-1-abs5.onrender.com", "http://localhost"],  # Указываем фронтенд
+    allow_credentials=True,
+    allow_methods=["*"],  # Разрешаем все методы
+    allow_headers=["*"],  # Разрешаем все заголовки
+)
 
-    # Обрабатываем основной запрос
-    response = await call_next(request)
-    
-    # Добавляем CORS заголовки ко всем ответам
-    response.headers["Access-Control-Allow-Origin"] = "https://task-manager-1-abs5.onrender.com"
-    response.headers["Access-Control-Allow-Methods"] = "GET, POST, DELETE, OPTIONS"
-    response.headers["Access-Control-Allow-Headers"] = "Content-Type, Authorization"
-    response.headers["Access-Control-Allow-Credentials"] = "true"
-    
-    return response
+
 
 @app.on_event("startup")
 async def startup():
