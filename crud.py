@@ -1,17 +1,21 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
-from sqlalchemy import and_, delete
+from sqlalchemy import and_
 from models import Task
-from datetime import datetime, date, timedelta
+from datetime import datetime, timedelta
 
 async def get_tasks(db: AsyncSession, date: str = None):
     query = select(Task)
     if date:
+        # Преобразуем переданную строку в объект date
         filter_date = datetime.strptime(date, "%Y-%m-%d").date()
+        # Создаём нижнюю и верхнюю границу как объекты datetime
+        lower_bound = datetime.combine(filter_date, datetime.min.time())
+        upper_bound = lower_bound + timedelta(days=1)
         query = query.where(
             and_(
-                Task.deadline >= filter_date,
-                Task.deadline < filter_date + timedelta(days=1)
+                Task.deadline >= lower_bound,
+                Task.deadline < upper_bound
             )
         )
     result = await db.execute(query)
@@ -33,11 +37,9 @@ async def create_task(db: AsyncSession, title: str, description: str = None, dea
     return db_task
 
 async def delete_task(db: AsyncSession, task_id: int):
-    # Находим задачу по ID
     task = await db.get(Task, task_id)
     if not task:
-        return None  # Если задачи нет, возвращаем None
-    # Удаляем задачу
+        return None
     await db.delete(task)
     await db.commit()
     return task
