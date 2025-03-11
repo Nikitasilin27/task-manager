@@ -596,14 +596,21 @@ checkbox.addEventListener('click', async function(event) {
       }
 
 async function loadTasks() {
+  taskList.innerHTML = '<div class="spinner">Загрузка...</div>'; // или реализуйте skeleton
   try {
     const selectedDate = formatDate(currentSelectedDate);
-    console.log(`Fetching tasks for date: ${selectedDate}`);
-    const response = await fetch(`https://task-manager-tj38.onrender.com/tasks?date=${selectedDate}`, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+    const response = await fetch(`https://task-manager-tj38.onrender.com/tasks?date=${selectedDate}`);
+    if (!response.ok) throw new Error(await response.text());
+    const tasks = await response.json();
+    visibleTasks.length = 0;
+    tasks.forEach(task => visibleTasks.push(task));
+    renderTasks();
+  } catch (error) {
+    console.error('Ошибка при загрузке задач:', error);
+    alert(`Не удалось загрузить задачи: ${error.message}`);
+  }
+}
+
     });
     console.log(`Response status: ${response.status}`);
     if (!response.ok) {
