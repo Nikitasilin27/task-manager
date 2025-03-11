@@ -5,7 +5,9 @@ from models import Base
 async def init_db():
     async with engine.begin() as conn:
         print("Модели, которые SQLAlchemy видит:", Base.metadata.tables.keys())
-        await conn.run_sync(Base.metadata.drop_all)  # Удаляем таблицы для чистоты (опционально)
+        # Удаляем старую таблицу, чтобы пересоздать с новым полем
+        await conn.run_sync(Base.metadata.drop_all)
+        # Создаём таблицу заново
         await conn.run_sync(Base.metadata.create_all)
         print("Таблицы успешно созданы.")
 
