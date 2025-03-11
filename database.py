@@ -5,6 +5,7 @@ import os
 DATABASE_URL = os.getenv("DATABASE_URL")
 if DATABASE_URL is None:
     raise ValueError("DATABASE_URL is not set in environment variables")
+print(f"Using DATABASE_URL: {DATABASE_URL}")  # Добавляем для отладки
 if DATABASE_URL.startswith("postgresql://"):
     DATABASE_URL = DATABASE_URL.replace("postgresql://", "postgresql+asyncpg://")
 
