@@ -493,82 +493,37 @@
       const visibleTasks = [];
       const taskList = document.getElementById('taskList');
 
-      function createTaskElement(task) {
-        const taskItem = document.createElement('div');
-        taskItem.className = 'task-item';
-        taskItem.setAttribute('data-id', task.id);
-        taskItem.setAttribute('data-title', task.title);
-        taskItem.setAttribute('data-description', task.description || '');
-        taskItem.setAttribute('data-date', task.deadline ? task.deadline.split('T')[0] : '');
-        taskItem.setAttribute('data-time', task.deadline ? task.deadline.split('T')[1]?.slice(0, 5) : '');
-        taskItem.setAttribute('data-priority', task.priority);
-        taskItem.setAttribute('data-reminder', task.reminder || false);
-        taskItem.setAttribute('data-completed', task.completed || false);
+      checkbox.addEventListener('click', async function(event) {
+  event.stopPropagation();
+  const taskId = taskItem.getAttribute('data-id'); // Получаем ID задачи
+  const isCompleted = !checkbox.classList.contains('checked'); // Новый статус
 
-        const checkbox = document.createElement('div');
-        checkbox.className = 'checkbox';
-        if (task.completed) checkbox.classList.add('checked');
-        checkbox.addEventListener('click', function(event) {
-          event.stopPropagation();
-          taskItem.classList.toggle('completed');
-          checkbox.classList.toggle('checked');
-        });
-        const inner = document.createElement('div');
-        inner.className = 'inner';
-        checkbox.appendChild(inner);
+  try {
+    // Отправляем PATCH-запрос на сервер
+    const response = await fetch(`https://task-manager-tj38.onrender.com/tasks/${taskId}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ completed: isCompleted })
+    });
 
-        const taskInfo = document.createElement('div');
-        taskInfo.className = 'task-info';
-        const titleElem = document.createElement('div');
-        titleElem.className = 'task-title';
-        titleElem.textContent = task.title;
-        const dateElem = document.createElement('div');
-        dateElem.className = 'task-date';
-        dateElem.textContent = task.deadline ? new Date(task.deadline).toLocaleString('ru-RU', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) : 'Без даты';
-        taskInfo.appendChild(titleElem);
-        taskInfo.appendChild(dateElem);
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`Ошибка ${response.status}: ${errorText}`);
+    }
 
-        const priorityElem = document.createElement('div');
-        priorityElem.className = 'priority';
-        if (task.priority === 'High') priorityElem.classList.add('priority-high');
-        else if (task.priority === 'Medium') priorityElem.classList.add('priority-medium');
-        else priorityElem.classList.add('priority-low');
-        priorityElem.textContent = task.priority === 'High' ? 'Высокий' : task.priority === 'Medium' ? 'Средний' : 'Низкий';
-
-        const deleteBtn = document.createElement('button');
-        deleteBtn.className = 'delete-btn';
-        deleteBtn.textContent = 'Удалить';
-        deleteBtn.addEventListener('click', async function(event) {
-          event.stopPropagation();
-          const taskId = task.id;
-          try {
-            const response = await fetch(`https://task-manager-tj38.onrender.com/tasks/${taskId}`, {
-              method: 'DELETE',
-            });
-            if (!response.ok) {
-              const errorText = await response.text();
-              throw new Error(`Ошибка ${response.status}: ${errorText}`);
-            }
-            const index = visibleTasks.findIndex(t => t.id === taskId);
-            if (index !== -1) visibleTasks.splice(index, 1);
-            renderTasks();
-          } catch (error) {
-            console.error('Ошибка при удалении задачи:', error);
-            alert(`Не удалось удалить задачу: ${error.message}`);
-          }
-        });
-
-        taskItem.appendChild(checkbox);
-        taskItem.appendChild(taskInfo);
-        taskItem.appendChild(priorityElem);
-        taskItem.appendChild(deleteBtn);
-
-        taskItem.addEventListener('click', function() {
-          openModal(taskItem);
-        });
-
-        return taskItem;
-      }
+    const updatedTask = await response.json();
+    // Обновляем атрибуты и классы в UI
+    taskItem.setAttribute('data-completed', updatedTask.completed);
+    taskItem.classList.toggle('completed', updatedTask.completed);
+    checkbox.classList.toggle('checked', updatedTask.completed);
+  } catch (error) {
+    console.error('Ошибка при обновлении статуса задачи:', error);
+    alert(`Не удалось обновить задачу: ${error.message}`);
+    // Откатываем изменения в UI при ошибке
+    taskItem.classList.toggle('completed', !isCompleted);
+    checkbox.classList.toggle('checked', !isCompleted);
+  }
+});
 
       function renderTasks() {
         if (!taskList) {
