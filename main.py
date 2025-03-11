@@ -1,11 +1,11 @@
-from fastapi import FastAPI, Depends, HTTPException
-from fastapi.middleware.cors import CORSMiddleware  # Импорт исправлен
+from fastapi import FastAPI, Depends, HTTPException, Request
+from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.ext.asyncio import AsyncSession
 from database import get_db, engine
 from models import Base
 from crud import get_tasks, create_task, delete_task
 from fastapi.encoders import jsonable_encoder
-from pydantic import BaseModel
+from pydantic import BaseModel, Optional
 from datetime import datetime
 
 # Pydantic-модель для входящих данных при создании задачи
@@ -21,8 +21,8 @@ class TaskCreate(BaseModel):
 class TaskOut(BaseModel):
     id: int
     title: str
-    description: str = None
-    deadline: datetime = None
+    description: Optional[str] = None  # Используем Optional для поддержки None
+    deadline: Optional[datetime] = None
     priority: str
     reminder: bool
     completed: bool
