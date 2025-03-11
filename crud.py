@@ -22,6 +22,8 @@ async def get_tasks(db: AsyncSession, date: str = None):
     return result.scalars().all()
 
 async def create_task(db: AsyncSession, title: str, description: str = None, deadline: str = None, priority: str = "Medium", reminder: bool = False, completed: bool = False):
+    if priority not in ["High", "Medium", "Low"]:
+        raise ValueError("Priority must be 'High', 'Medium', or 'Low'")
     deadline_dt = datetime.fromisoformat(deadline) if deadline else None
     db_task = Task(
         title=title,
