@@ -508,11 +508,31 @@
         const checkbox = document.createElement('div');
         checkbox.className = 'checkbox';
         if (task.completed) checkbox.classList.add('checked');
-        checkbox.addEventListener('click', function(event) {
-          event.stopPropagation();
-          taskItem.classList.toggle('completed');
-          checkbox.classList.toggle('checked');
-        });
+       checkbox.addEventListener('click', async function(event) {
+        event.stopPropagation();
+        const taskId = task.id;
+        const completed = !taskItem.classList.contains('completed');
+  
+      try {
+        const response = await fetch(`https://task-manager-tj38.onrender.com/tasks/${taskId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ completed: completed })
+      });
+    
+     if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`Ошибка ${response.status}: ${errorText}`);
+    }
+    
+    taskItem.classList.toggle('completed');
+    checkbox.classList.toggle('checked');
+    task.dataset.completed = completed.toString();
+  } catch (error) {
+    console.error('Ошибка при обновлении задачи:', error);
+    alert(`Не удалось обновить задачу: ${error.message}`);
+  }
+});
         const inner = document.createElement('div');
         inner.className = 'inner';
         checkbox.appendChild(inner);
