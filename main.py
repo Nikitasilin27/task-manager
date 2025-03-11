@@ -3,7 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.ext.asyncio import AsyncSession
 from database import get_db, engine
 from models import Base
-from crud import get_tasks, create_task
+from crud import get_tasks, create_task, delete_task
 
 app = FastAPI()
 
@@ -17,11 +17,9 @@ app.add_middleware(
 
 @app.on_event("startup")
 async def startup():
-    # Удаляем старые таблицы и создаём новые
     async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.drop_all)  # Удаляем старые таблицы
-        await conn.run_sync(Base.metadata.create_all)  # Создаём новые таблицы
-    # Добавляем тестовые задачи, если их нет
+        await conn.run_sync(Base.metadata.drop_all)
+        await conn.run_sync(Base.metadata.create_all)
     async for session in get_db():
         tasks = await get_tasks(session)
         if not tasks:
@@ -38,17 +36,6 @@ async def read_tasks(date: str = None, db: AsyncSession = Depends(get_db)):
     tasks = await get_tasks(db, date=date)
     return tasks
 
-from pydantic import BaseModel
-from datetime import datetime
-
-class TaskCreate(BaseModel):
-    title: str
-    description: str | None = None
-    deadline: str | None = None
-    priority: str = "Medium"
-    reminder: bool = False
-    completed: bool = False
-
 @app.post("/tasks")
 async def create_new_task(task: TaskCreate, db: AsyncSession = Depends(get_db)):
     try:
@@ -64,3 +51,10 @@ async def create_new_task(task: TaskCreate, db: AsyncSession = Depends(get_db)):
         return {"message": "Задача создана!", "task": new_task}
     except Exception as e:
         raise HTTPException(status_code=400, detail=f"Ошибка при создании задачи: {str(e)}")
+
+@app.delete("/tasks/{task_id}")
+async def delete_task_endpoint(task_id: int, db: AsyncSession = Depends(get_db)):
+    task = await delete_task(db, task_id)
+    if not task:
+        raise HTTPException(status_code=404, detail="Задача не найдена")
+    return {"message": "Задача удалена"}
