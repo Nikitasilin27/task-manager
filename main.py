@@ -13,7 +13,7 @@ class TaskCreate(BaseModel):
     title: str
     description: str = None
     deadline: str = None  # Формат ISO, например, "2025-03-11T12:00:00"
-    priority: str = "Medium"
+    priority: str = "Medium"  # Изменяем на значения, которые использует бэкенд
     reminder: bool = False
     completed: bool = False
 
@@ -36,7 +36,7 @@ app = FastAPI()
 # Настройка CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["https://task-manager-1-abs5.onrender.com"],  # Разрешаем домен фронтенда
+    allow_origins=["https://task-manager-1-abs5.onrender.com", "http://localhost"],  # Разрешаем фронтенд
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -45,7 +45,6 @@ app.add_middleware(
 @app.on_event("startup")
 async def startup():
     async with engine.begin() as conn:
-        # Оставляем только создание таблиц, убираем drop_all
         await conn.run_sync(Base.metadata.create_all)
 
     async for session in get_db():
