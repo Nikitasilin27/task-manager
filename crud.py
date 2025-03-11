@@ -1,15 +1,13 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
-from sqlalchemy import and_
+from sqlalchemy import and_, delete
 from models import Task
-from datetime import datetime, date
+from datetime import datetime, date, timedelta
 
 async def get_tasks(db: AsyncSession, date: str = None):
     query = select(Task)
     if date:
-        # Преобразуем строку даты (например, "2025-03-12") в объект date
         filter_date = datetime.strptime(date, "%Y-%m-%d").date()
-        # Фильтруем задачи, где deadline соответствует указанной дате
         query = query.where(
             and_(
                 Task.deadline >= filter_date,
@@ -33,3 +31,13 @@ async def create_task(db: AsyncSession, title: str, description: str = None, dea
     await db.commit()
     await db.refresh(db_task)
     return db_task
+
+async def delete_task(db: AsyncSession, task_id: int):
+    # Находим задачу по ID
+    task = await db.get(Task, task_id)
+    if not task:
+        return None  # Если задачи нет, возвращаем None
+    # Удаляем задачу
+    await db.delete(task)
+    await db.commit()
+    return task
