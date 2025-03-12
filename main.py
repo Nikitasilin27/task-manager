@@ -3,7 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.ext.asyncio import AsyncSession
 from database import get_db, engine
 from models import Base
-from crud import get_tasks, create_task, delete_task
+from crud import get_tasks, create_task, delete_task, update_task
 from fastapi.encoders import jsonable_encoder
 from pydantic import BaseModel
 from typing import Optional
