@@ -494,50 +494,115 @@
       const taskList = document.getElementById('taskList');
 
       function createTaskElement(task) {
-        const taskItem = document.createElement('div');
-        taskItem.className = 'task-item';
-        taskItem.setAttribute('data-id', task.id);
-        taskItem.setAttribute('data-title', task.title);
-        taskItem.setAttribute('data-description', task.description || '');
-        taskItem.setAttribute('data-date', task.deadline ? task.deadline.split('T')[0] : '');
-        taskItem.setAttribute('data-time', task.deadline ? task.deadline.split('T')[1]?.slice(0, 5) : '');
-        taskItem.setAttribute('data-priority', task.priority);
-        taskItem.setAttribute('data-reminder', task.reminder || false);
-        taskItem.setAttribute('data-completed', task.completed || false);
+  const taskItem = document.createElement('div');
+  taskItem.className = 'task-item';
+  taskItem.setAttribute('data-id', task.id);
+  taskItem.setAttribute('data-title', task.title);
+  taskItem.setAttribute('data-description', task.description || '');
+  taskItem.setAttribute('data-date', task.deadline ? task.deadline.split('T')[0] : '');
+  taskItem.setAttribute('data-time', task.deadline ? task.deadline.split('T')[1]?.slice(0, 5) : '');
+  taskItem.setAttribute('data-priority', task.priority);
+  taskItem.setAttribute('data-reminder', task.reminder || false);
+  taskItem.setAttribute('data-completed', task.completed || false);
 
-        const checkbox = document.createElement('div');
-        checkbox.className = 'checkbox';
-        if (task.completed) checkbox.classList.add('checked');
-checkbox.addEventListener('click', async function(event) {
-  event.stopPropagation();
-  const isCompleted = !taskItem.classList.contains('completed'); // Определяем новое состояние
-  taskItem.classList.toggle('completed'); // Меняем внешний вид
-  checkbox.classList.toggle('checked'); // Ставим/убираем галочку
-  taskItem.setAttribute('data-completed', isCompleted); // Обновляем атрибут
+  const checkbox = document.createElement('div');
+  checkbox.className = 'checkbox';
+  if (task.completed) checkbox.classList.add('checked');
 
-  // Отправляем запрос на сервер
-  try {
-    const taskId = taskItem.getAttribute('data-id'); // Берём ID задачи
-    const response = await fetch(`https://task-manager-tj38.onrender.com/tasks/${taskId}`, {
-      method: 'PATCH', // Метод PATCH для обновления
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ completed: isCompleted }) // Отправляем новый статус
-    });
+  checkbox.addEventListener('click', async function(event) {
+    event.stopPropagation();
+    const isCompleted = !taskItem.classList.contains('completed'); // Определяем новое состояние
+    taskItem.classList.toggle('completed'); // Меняем внешний вид
+    checkbox.classList.toggle('checked'); // Ставим/убираем галочку
+    taskItem.setAttribute('data-completed', isCompleted); // Обновляем атрибут
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      throw new Error(`Ошибка ${response.status}: ${errorText}`);
+    try {
+      const taskId = taskItem.getAttribute('data-id'); // Берём ID задачи
+      const response = await fetch(`https://task-manager-tj38.onrender.com/tasks/${taskId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ completed: isCompleted }) // Отправляем новый статус
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Ошибка ${response.status}: ${errorText}`);
+      }
+      const updatedTask = await response.json(); // Получаем обновлённую задачу
+      console.log(`Задача ${taskId} обновлена:`, updatedTask);
+
+      // Обновляем массив visibleTasks
+      const taskIndex = visibleTasks.findIndex(t => t.id === parseInt(taskId));
+      if (taskIndex !== -1) {
+        visibleTasks[taskIndex].completed = updatedTask.completed;
+      }
+    } catch (error) {
+      console.error('Ошибка при обновлении задачи:', error);
+      alert(`Не удалось обновить задачу: ${error.message}`);
+      // Откатываем изменения, если сервер не ответил
+      taskItem.classList.toggle('completed');
+      checkbox.classList.toggle('checked');
+      taskItem.setAttribute('data-completed', !isCompleted);
     }
-    console.log(`Задача ${taskId} обновлена: completed = ${isCompleted}`);
-  } catch (error) {
-    console.error('Ошибка при обновлении задачи:', error);
-    alert(`Не удалось обновить задачу: ${error.message}`);
-    // Откатываем изменения, если сервер не ответил
-    taskItem.classList.toggle('completed');
-    checkbox.classList.toggle('checked');
-    taskItem.setAttribute('data-completed', !isCompleted);
-  }
-});
+  });
+
+  // Остальной код (inner, taskInfo, priorityElem, deleteBtn, etc.) остаётся без изменений
+  const inner = document.createElement('div');
+  inner.className = 'inner';
+  checkbox.appendChild(inner);
+
+  const taskInfo = document.createElement('div');
+  taskInfo.className = 'task-info';
+  const titleElem = document.createElement('div');
+  titleElem.className = 'task-title';
+  titleElem.textContent = task.title;
+  const dateElem = document.createElement('div');
+  dateElem.className = 'task-date';
+  dateElem.textContent = task.deadline ? new Date(task.deadline).toLocaleString('ru-RU', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) : 'Без даты';
+  taskInfo.appendChild(titleElem);
+  taskInfo.appendChild(dateElem);
+
+  const priorityElem = document.createElement('div');
+  priorityElem.className = 'priority';
+  if (task.priority === 'High') priorityElem.classList.add('priority-high');
+  else if (task.priority === 'Medium') priorityElem.classList.add('priority-medium');
+  else priorityElem.classList.add('priority-low');
+  priorityElem.textContent = task.priority === 'High' ? 'Высокий' : task.priority === 'Medium' ? 'Средний' : 'Низкий';
+
+  const deleteBtn = document.createElement('button');
+  deleteBtn.className = 'delete-btn';
+  deleteBtn.textContent = 'Удалить';
+  deleteBtn.addEventListener('click', async function(event) {
+    event.stopPropagation();
+    const taskId = task.id;
+    try {
+      const response = await fetch(`https://task-manager-tj38.onrender.com/tasks/${taskId}`, {
+        method: 'DELETE',
+      });
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Ошибка ${response.status}: ${errorText}`);
+      }
+      const index = visibleTasks.findIndex(t => t.id === taskId);
+      if (index !== -1) visibleTasks.splice(index, 1);
+      renderTasks();
+    } catch (error) {
+      console.error('Ошибка при удалении задачи:', error);
+      alert(`Не удалось удалить задачу: ${error.message}`);
+    }
+  });
+
+  taskItem.appendChild(checkbox);
+  taskItem.appendChild(taskInfo);
+  taskItem.appendChild(priorityElem);
+  taskItem.appendChild(deleteBtn);
+
+  taskItem.addEventListener('click', function() {
+    openModal(taskItem);
+  });
+
+  return taskItem;
+}
         const inner = document.createElement('div');
         inner.className = 'inner';
         checkbox.appendChild(inner);
