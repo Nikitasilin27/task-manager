@@ -40,7 +40,7 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=["https://task-manager-1-abs5.onrender.com", "http://localhost"],
     allow_credentials=True,
-    allow_methods=["GET", "POST", "DELETE", "OPTIONS"],
+    allow_methods=["GET", "POST", "DELETE", "OPTIONS", "PATCH"],
     allow_headers=["Content-Type", "Authorization"],
 )
 
