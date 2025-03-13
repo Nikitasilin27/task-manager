@@ -128,11 +128,16 @@ async def delete_task_endpoint(task_id: int, user_id: int, db: AsyncSession = De
         raise HTTPException(status_code=500, detail=f"Ошибка сервера: {str(e)}")
 
 class TaskUpdate(BaseModel):
-    completed: bool
+    title: Optional[str] = None
+    description: Optional[str] = None
+    deadline: Optional[str] = None
+    priority: Optional[str] = None
+    reminder: Optional[bool] = None
+    completed: Optional[bool] = None
 
 @app.patch("/tasks/{task_id}", response_model=TaskOut)
 async def update_task_endpoint(task_id: int, task_update: TaskUpdate, user_id: int, db: AsyncSession = Depends(get_db)):
-    updated_task = await update_task(db, user_id=user_id, task_id=task_id, completed=task_update.completed)
-    if not updated_task:
+    task = await update_task(db, user_id=user_id, task_id=task_id, **task_update.dict(exclude_unset=True))
+    if not task:
         raise HTTPException(status_code=404, detail="Задача не найдена или не принадлежит пользователю")
-    return jsonable_encoder(updated_task)
+    return jsonable_encoder(task)
