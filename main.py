@@ -49,16 +49,17 @@ async def startup():
     try:
         print("Starting application and creating database tables...")
         async with engine.begin() as conn:
-            await conn.run_sync(Base.metadata.create_all)
+            await conn.run_sync(Base.metadata.drop_all)  # Удаляем старую таблицу
+            await conn.run_sync(Base.metadata.create_all)  # Создаём новую с user_id
         print("Database tables created successfully.")
         async for session in get_db():
-            tasks = await get_tasks(session, user_id=1)  # Временное значение user_id для инициализации
+            tasks = await get_tasks(session, user_id=1)
             print(f"Found {len(tasks)} existing tasks.")
             if not tasks:
                 print("Initializing default tasks...")
                 await create_task(
                     session,
-                    user_id=1,  # Временное значение user_id для инициализации
+                    user_id=1,
                     title="Купить молоко",
                     deadline="2025-03-11T12:00:00",
                     priority="High",
@@ -67,7 +68,7 @@ async def startup():
                 )
                 await create_task(
                     session,
-                    user_id=1,  # Временное значение user_id для инициализации
+                    user_id=1,
                     title="Позвонить другу",
                     deadline="2025-03-12T14:00:00",
                     priority="Medium",
