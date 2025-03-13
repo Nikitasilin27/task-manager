@@ -600,6 +600,10 @@
     document.addEventListener('DOMContentLoaded', function() {
       console.log('DOM loaded, initializing app...');
 
+       // Объявляем visibleTasks в начале
+      const visibleTasks = [];
+      const taskList = document.getElementById('taskList');
+      
       // Инициализация Telegram WebApp и получение user_id
       let user_id;
       try {
@@ -955,9 +959,6 @@
       });
       mainButton.show();
 
-      // Массив для хранения отображаемых задач (перемещено выше)
-      const visibleTasks = [];
-      const taskList = document.getElementById('taskList');
 
       // Создание элемента задачи
       function createTaskElement(task) {
