@@ -46,14 +46,15 @@ async def delete_task(db: AsyncSession, user_id: int, task_id: int):
     return task
 
 
-async def update_task(db: AsyncSession, user_id: int, task_id: int, completed: bool):
+async def update_task(db: AsyncSession, user_id: int, task_id: int, **kwargs):
     task = await db.get(Task, task_id)
     if not task or task.user_id != user_id:
         return None
-    task.completed = completed
-    await db.commit()
-    await db.refresh(task)
-    return task
+    for key, value in kwargs.items():
+        if value is not None:
+            if key == "deadline" and value:
+                value = datetime.fromisoformat(value)
+            setattr(task, key, value)
     await db.commit()
     await db.refresh(task)
     return task
