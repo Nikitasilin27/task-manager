@@ -14,3 +14,4 @@ class Task(Base):
     reminder = Column(Boolean, default=False)
     completed = Column(Boolean, default=False)
     created_at = Column(DateTime, default=datetime.datetime.utcnow)
+    user_id = Column(Integer, nullable=False)
