@@ -227,420 +227,420 @@
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <script>
     document.addEventListener('DOMContentLoaded', function() {
-      console.log('DOM loaded, initializing app...');
+        console.log('DOM loaded, initializing app...');
 
-      // Инициализация Telegram WebApp
-      try {
-        Telegram.WebApp.ready();
-        const user = Telegram.WebApp.initDataUnsafe.user;
-        if (user) {
-          const name = user.first_name + (user.last_name ? ' ' + user.last_name : '');
-          const username = user.username ? '@' + user.username : 'No username';
-          const avatar = user.photo_url || 'https://via.placeholder.com/40';
-          document.querySelector('.name').textContent = name;
-          document.querySelector('.username').textContent = username;
-          document.querySelector('.avatar').style.backgroundImage = `url(${avatar})`;
-          document.querySelector('.avatar').style.backgroundSize = 'cover';
-          document.querySelector('.avatar').style.backgroundColor = 'transparent';
-        }
-        console.log('Telegram WebApp initialized with user:', user);
-      } catch (error) {
-        console.error('Telegram WebApp initialization failed:', error);
-      }
-
-      // Функция форматирования даты
-      function formatDate(date) {
-        let d = new Date(date);
-        let month = '' + (d.getMonth() + 1);
-        let day = '' + d.getDate();
-        let year = d.getFullYear();
-        if (month.length < 2) month = '0' + month;
-        if (day.length < 2) day = '0' + day;
-        return [year, month, day].join('-');
-      }
-
-      // Получение дат недели
-      function getWeekDates(selectedDate) {
-        let date = new Date(selectedDate);
-        let day = date.getDay();
-        let diff = (day === 0 ? -6 : 1 - day);
-        let monday = new Date(date);
-        monday.setDate(date.getDate() + diff);
-        let weekDates = [];
-        for (let i = 0; i < 7; i++) {
-          let d = new Date(monday);
-          d.setDate(monday.getDate() + i);
-          weekDates.push(d);
-        }
-        return weekDates;
-      }
-
-      // Обновление вкладок
-      function updateTabs(selectedDate) {
-        const tabsContainer = document.getElementById('tabsContainer');
-        if (!tabsContainer) return;
-        tabsContainer.innerHTML = '';
-        let weekDates = getWeekDates(selectedDate);
-        weekDates.forEach(function(date) {
-          let tab = document.createElement('div');
-          tab.className = 'tab';
-          let dayNames = ['Вс', 'Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб'];
-          let dayName = dayNames[date.getDay()];
-          let dayNum = date.getDate();
-          tab.innerHTML = dayName + '<br>' + dayNum;
-          tab.dataset.date = formatDate(date);
-          tab.addEventListener('click', function() {
-            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-            tab.classList.add('active');
-            let today = formatDate(new Date());
-            if (tab.dataset.date === today) {
-              document.getElementById('currentDay').textContent = 'Сегодня';
-            } else {
-              document.getElementById('currentDay').textContent = dayName + '. ' + dayNum;
-            }
-            currentSelectedDate = new Date(tab.dataset.date);
-            updateMonthDisplay(currentSelectedDate);
-            updateCurrentDayLabel();
-            loadTasks();
-          });
-          if (formatDate(date) === formatDate(selectedDate)) {
-            tab.classList.add('active');
-          }
-          tabsContainer.appendChild(tab);
-        });
-      }
-
-      let currentSelectedDate = new Date();
-      function updateMonthDisplay(date) {
-        const monthText = document.getElementById('monthText');
-        if (!monthText) return;
-        const options = { month: 'long', year: 'numeric' };
-        monthText.textContent = date.toLocaleDateString('ru-RU', options);
-      }
-
-      updateMonthDisplay(currentSelectedDate);
-      updateTabs(currentSelectedDate);
-
-      const monthDisplay = document.getElementById('monthDisplay');
-      if (monthDisplay) {
-        monthDisplay.addEventListener('click', function() {
-          document.getElementById('datePicker').click();
-        });
-      }
-
-      const datePicker = document.getElementById('datePicker');
-      if (datePicker) {
-        datePicker.addEventListener('change', function() {
-          let selected = new Date(this.value);
-          currentSelectedDate = selected;
-          updateMonthDisplay(selected);
-          updateTabs(selected);
-          updateCurrentDayLabel();
-          loadTasks();
-        });
-      }
-
-      const prevDay = document.getElementById('prevDay');
-      if (prevDay) {
-        prevDay.addEventListener('click', function(e) {
-          e.stopPropagation();
-          currentSelectedDate.setDate(currentSelectedDate.getDate() - 1);
-          updateMonthDisplay(currentSelectedDate);
-          updateTabs(currentSelectedDate);
-          updateCurrentDayLabel();
-          loadTasks();
-        });
-      }
-
-      const nextDay = document.getElementById('nextDay');
-      if (nextDay) {
-        nextDay.addEventListener('click', function(e) {
-          e.stopPropagation();
-          currentSelectedDate.setDate(currentSelectedDate.getDate() + 1);
-          updateMonthDisplay(currentSelectedDate);
-          updateTabs(currentSelectedDate);
-          updateCurrentDayLabel();
-          loadTasks();
-        });
-      }
-
-      function updateCurrentDayLabel() {
-        const dayNames = ['Вс', 'Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб'];
-        const dayName = dayNames[currentSelectedDate.getDay()];
-        const dayNum = currentSelectedDate.getDate();
-        const today = formatDate(new Date());
-        const currentDay = document.getElementById('currentDay');
-        if (currentDay) {
-          currentDay.textContent = formatDate(currentSelectedDate) === today ? 'Сегодня' : dayName + '. ' + dayNum;
-        }
-      }
-
-      let currentTaskItem = null;
-      function openModal(taskItem) {
-        const modal = document.getElementById('taskForm');
-        const backdrop = document.getElementById('backdrop');
-        if (!modal || !backdrop) return;
-        currentTaskItem = taskItem;
-        modal.classList.add('active');
-        backdrop.classList.add('active');
-        if (taskItem) {
-          document.getElementById('modalTaskTitle').textContent = taskItem.dataset.title;
-          document.getElementById('modalTaskInput').value = taskItem.dataset.title;
-          document.getElementById('modalTaskDesc').value = taskItem.dataset.description || '';
-          document.getElementById('modalTaskDate').value = taskItem.dataset.date;
-          document.getElementById('modalTaskTime').value = taskItem.dataset.time || '';
-          document.getElementById('modalTaskReminder').checked = taskItem.dataset.reminder === "true";
-          document.getElementById('modalTaskPriority').value = taskItem.dataset.priority;
-          document.getElementById('modalCompleteBtn').textContent = taskItem.dataset.completed === "true" ? "Вернуть" : "Выполнить";
-        } else {
-          document.getElementById('modalTaskTitle').textContent = "Новая задача";
-          document.getElementById('modalTaskInput').value = "";
-          document.getElementById('modalTaskDesc').value = "";
-          document.getElementById('modalTaskDate').value = formatDate(new Date());
-          document.getElementById('modalTaskTime').value = "";
-          document.getElementById('modalTaskReminder').checked = false;
-          document.getElementById('modalTaskPriority').value = "Medium";
-          document.getElementById('modalCompleteBtn').textContent = "Выполнить";
-        }
-      }
-
-      function closeModal() {
-        const modal = document.getElementById('taskForm');
-        const backdrop = document.getElementById('backdrop');
-        if (!modal || !backdrop) return;
-        modal.classList.add('closing');
-        setTimeout(() => {
-          modal.classList.remove('active', 'closing');
-          backdrop.classList.remove('active');
-        }, 300);
-      }
-
-      const addTaskBtn = document.getElementById('addTaskBtn');
-      if (addTaskBtn) {
-        addTaskBtn.addEventListener('click', function() {
-          openModal(null);
-        });
-      }
-
-      const closeModalBtn = document.getElementById('closeModalBtn');
-      if (closeModalBtn) {
-        closeModalBtn.addEventListener('click', closeModal);
-      }
-
-      const backdrop = document.getElementById('backdrop');
-      if (backdrop) {
-        backdrop.addEventListener('click', closeModal);
-      }
-
-      const modalTaskInput = document.getElementById('modalTaskInput');
-      if (modalTaskInput) {
-        modalTaskInput.addEventListener('input', function() {
-          document.getElementById('modalTaskTitle').textContent = this.value || 'Задача';
-        });
-      }
-
-      const modalSubmitBtn = document.getElementById('modalSubmitBtn');
-      if (modalSubmitBtn) {
-        modalSubmitBtn.addEventListener('click', async function() {
-          const titleInput = document.getElementById('modalTaskInput');
-          const dateInput = document.getElementById('modalTaskDate');
-          if (!titleInput.value.trim()) {
-            titleInput.style.borderColor = '#BD0935';
-            titleInput.focus();
-            return;
-          }
-          if (new Date(dateInput.value) < new Date().setHours(0,0,0,0)) {
-            dateInput.style.borderColor = '#BD0935';
-            return;
-          }
-
-          const title = titleInput.value.trim();
-          const description = document.getElementById('modalTaskDesc').value;
-          const date = dateInput.value;
-          const time = document.getElementById('modalTaskTime').value;
-          const deadline = date && time ? `${date}T${time}:00` : date ? `${date}T00:00:00` : null;
-          const priority = document.getElementById('modalTaskPriority').value;
-          const reminder = document.getElementById('modalTaskReminder').checked;
-
-          if (currentTaskItem) {
-            const taskId = currentTaskItem.dataset.id;
-            try {
-              const response = await fetch(`https://task-manager-tj38.onrender.com/tasks/${taskId}`, {
-                method: 'PATCH',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                  title,
-                  description,
-                  deadline,
-                  priority,
-                  reminder,
-                  completed: currentTaskItem.dataset.completed === "true"
-                })
-              });
-              if (!response.ok) throw new Error(`Ошибка ${response.status}`);
-              const updatedTask = await response.json();
-              const taskIndex = visibleTasks.findIndex(t => t.id === parseInt(taskId));
-              if (taskIndex !== -1) visibleTasks[taskIndex] = updatedTask;
-              renderTasks();
-            } catch (error) {
-              console.error('Ошибка при обновлении задачи:', error);
-              alert(`Не удалось обновить задачу: ${error.message}`);
-            }
-          } else {
-            try {
-              const response = await fetch('https://task-manager-tj38.onrender.com/tasks', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                  title,
-                  description,
-                  deadline,
-                  priority,
-                  reminder,
-                  completed: false
-                })
-              });
-              if (!response.ok) throw new Error(`Ошибка ${response.status}`);
-              const newTask = await response.json();
-              visibleTasks.push(newTask);
-              renderTasks();
-            } catch (error) {
-              console.error('Ошибка при создании задачи:', error);
-              alert(`Не удалось создать задачу: ${error.message}`);
-            }
-          }
-          closeModal();
-        });
-      }
-
-      const visibleTasks = [];
-      const taskList = document.getElementById('taskList');
-
-      function createTaskElement(task) {
-        const taskItem = document.createElement('div');
-        taskItem.className = 'task-item';
-        taskItem.dataset.id = task.id;
-        taskItem.dataset.title = task.title;
-        taskItem.dataset.description = task.description || '';
-        taskItem.dataset.date = task.deadline ? task.deadline.split('T')[0] : '';
-        taskItem.dataset.time = task.deadline ? task.deadline.split('T')[1]?.slice(0, 5) : '';
-        taskItem.dataset.priority = task.priority;
-        taskItem.dataset.reminder = task.reminder || false;
-        taskItem.dataset.completed = task.completed || false;
-
-        const checkbox = document.createElement('input');
-        checkbox.type = 'checkbox';
-        checkbox.className = 'checkbox';
-        checkbox.checked = task.completed || false;
-        if (task.completed) taskItem.classList.add('completed');
-
-        checkbox.addEventListener('click', async function(event) {
-          event.stopPropagation();
-          const isCompleted = checkbox.checked;
-          taskItem.classList.toggle('completed');
-          taskItem.dataset.completed = isCompleted;
-
-          try {
-            const taskId = taskItem.dataset.id;
-            const response = await fetch(`https://task-manager-tj38.onrender.com/tasks/${taskId}`, {
-              method: 'PATCH',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ completed: isCompleted })
-            });
-            if (!response.ok) throw new Error(`Ошибка ${response.status}`);
-            const updatedTask = await response.json();
-            const taskIndex = visibleTasks.findIndex(t => t.id === parseInt(taskId));
-            if (taskIndex !== -1) visibleTasks[taskIndex].completed = updatedTask.completed;
-            renderTasks();
-          } catch (error) {
-            console.error('Ошибка при обновлении задачи:', error);
-            alert(`Не удалось обновить задачу: ${error.message}`);
-            checkbox.checked = !isCompleted;
-            taskItem.classList.toggle('completed');
-            taskItem.dataset.completed = !isCompleted;
-          }
-        });
-
-        const taskInfo = document.createElement('div');
-        taskInfo.className = 'task-info';
-        const titleElem = document.createElement('div');
-        titleElem.className = 'task-title';
-        titleElem.textContent = task.title;
-        const dateElem = document.createElement('div');
-        dateElem.className = 'task-date';
-        dateElem.textContent = task.deadline 
-          ? new Date(task.deadline).toLocaleString('ru-RU', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) 
-          : 'Без даты';
-        taskInfo.appendChild(titleElem);
-        taskInfo.appendChild(dateElem);
-
-        const priorityElem = document.createElement('div');
-        priorityElem.className = 'priority';
-        if (task.priority === 'High') priorityElem.classList.add('priority-high');
-        else if (task.priority === 'Medium') priorityElem.classList.add('priority-medium');
-        else priorityElem.classList.add('priority-low');
-        priorityElem.textContent = task.priority === 'High' ? 'Высокий' : task.priority === 'Medium' ? 'Средний' : 'Низкий';
-
-        const deleteBtn = document.createElement('button');
-        deleteBtn.className = 'delete-btn';
-        deleteBtn.textContent = 'Удалить';
-        deleteBtn.addEventListener('click', async function(event) {
-          event.stopPropagation();
-          const taskId = task.id;
-          try {
-            const response = await fetch(`https://task-manager-tj38.onrender.com/tasks/${taskId}`, {
-              method: 'DELETE',
-            });
-            if (!response.ok) throw new Error(`Ошибка ${response.status}`);
-            const index = visibleTasks.findIndex(t => t.id === taskId);
-            if (index !== -1) visibleTasks.splice(index, 1);
-            renderTasks();
-          } catch (error) {
-            console.error('Ошибка при удалении задачи:', error);
-            alert(`Не удалось удалить задачу: ${error.message}`);
-          }
-        });
-
-        taskItem.appendChild(checkbox);
-        taskItem.appendChild(taskInfo);
-        taskItem.appendChild(priorityElem);
-        taskItem.appendChild(deleteBtn);
-
-        taskItem.addEventListener('click', function() {
-          openModal(taskItem);
-        });
-
-        return taskItem;
-      }
-
-      function renderTasks() {
-        if (!taskList) return;
-        taskList.innerHTML = '';
-        visibleTasks.forEach(task => {
-          taskList.appendChild(createTaskElement(task));
-        });
-      }
-
-      async function loadTasks() {
+        // Инициализация Telegram WebApp и получение user_id
+        let user_id;
         try {
-          const selectedDate = formatDate(currentSelectedDate);
-          const response = await fetch(`https://task-manager-tj38.onrender.com/tasks?date=${selectedDate}`, {
-            method: 'GET',
-            headers: { 'Content-Type': 'application/json' },
-          });
-          if (!response.ok) throw new Error(`Ошибка ${response.status}`);
-          const tasks = await response.json();
-          visibleTasks.length = 0; // Очистка перед загрузкой новых данных
-          tasks.forEach(task => visibleTasks.push(task));
-          renderTasks();
+            Telegram.WebApp.ready();
+            const user = Telegram.WebApp.initDataUnsafe.user;
+            if (user && user.id) {
+                user_id = user.id;
+                const name = user.first_name + (user.last_name ? ' ' + user.last_name : '');
+                const username = user.username ? '@' + user.username : 'No username';
+                const avatar = user.photo_url || 'https://via.placeholder.com/40';
+                document.querySelector('.name').textContent = name;
+                document.querySelector('.username').textContent = username;
+                document.querySelector('.avatar').style.backgroundImage = `url(${avatar})`;
+                document.querySelector('.avatar').style.backgroundSize = 'cover';
+                document.querySelector('.avatar').style.backgroundColor = 'transparent';
+                console.log('Telegram WebApp initialized with user_id:', user_id);
+            } else {
+                throw new Error("Не удалось получить user_id из Telegram");
+            }
         } catch (error) {
-          console.error('Ошибка при загрузке задач:', error);
-          alert(`Не удалось загрузить задачи: ${error.message}`);
+            console.error('Telegram WebApp initialization failed:', error);
+            alert('Не удалось инициализировать Telegram WebApp');
         }
-      }
 
-      loadTasks();
+        // Функция форматирования даты
+        function formatDate(date) {
+            let d = new Date(date);
+            let month = '' + (d.getMonth() + 1);
+            let day = '' + d.getDate();
+            let year = d.getFullYear();
+            if (month.length < 2) month = '0' + month;
+            if (day.length < 2) day = '0' + day;
+            return [year, month, day].join('-');
+        }
+
+        // Получение дат недели
+        function getWeekDates(selectedDate) {
+            let date = new Date(selectedDate);
+            let day = date.getDay();
+            let diff = (day === 0 ? -6 : 1 - day);
+            let monday = new Date(date);
+            monday.setDate(date.getDate() + diff);
+            let weekDates = [];
+            for (let i = 0; i < 7; i++) {
+                let d = new Date(monday);
+                d.setDate(monday.getDate() + i);
+                weekDates.push(d);
+            }
+            return weekDates;
+        }
+
+        // Обновление вкладок
+        function updateTabs(selectedDate) {
+            const tabsContainer = document.getElementById('tabsContainer');
+            if (!tabsContainer) return;
+            tabsContainer.innerHTML = '';
+            let weekDates = getWeekDates(selectedDate);
+            weekDates.forEach(function(date) {
+                let tab = document.createElement('div');
+                tab.className = 'tab';
+                let dayNames = ['Вс', 'Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб'];
+                let dayName = dayNames[date.getDay()];
+                let dayNum = date.getDate();
+                tab.innerHTML = dayName + '<br>' + dayNum;
+                tab.dataset.date = formatDate(date);
+                tab.addEventListener('click', function() {
+                    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                    tab.classList.add('active');
+                    let today = formatDate(new Date());
+                    if (tab.dataset.date === today) {
+                        document.getElementById('currentDay').textContent = 'Сегодня';
+                    } else {
+                        document.getElementById('currentDay').textContent = dayName + '. ' + dayNum;
+                    }
+                    currentSelectedDate = new Date(tab.dataset.date);
+                    updateMonthDisplay(currentSelectedDate);
+                    updateCurrentDayLabel();
+                    loadTasks();
+                });
+                if (formatDate(date) === formatDate(selectedDate)) {
+                    tab.classList.add('active');
+                }
+                tabsContainer.appendChild(tab);
+            });
+        }
+
+        let currentSelectedDate = new Date();
+        function updateMonthDisplay(date) {
+            const monthText = document.getElementById('monthText');
+            if (!monthText) return;
+            const options = { month: 'long', year: 'numeric' };
+            monthText.textContent = date.toLocaleDateString('ru-RU', options);
+        }
+
+        updateMonthDisplay(currentSelectedDate);
+        updateTabs(currentSelectedDate);
+
+        const monthDisplay = document.getElementById('monthDisplay');
+        if (monthDisplay) {
+            monthDisplay.addEventListener('click', function() {
+                document.getElementById('datePicker').click();
+            });
+        }
+
+        const datePicker = document.getElementById('datePicker');
+        if (datePicker) {
+            datePicker.addEventListener('change', function() {
+                let selected = new Date(this.value);
+                currentSelectedDate = selected;
+                updateMonthDisplay(selected);
+                updateTabs(selected);
+                updateCurrentDayLabel();
+                loadTasks();
+            });
+        }
+
+        const prevDay = document.getElementById('prevDay');
+        if (prevDay) {
+            prevDay.addEventListener('click', function(e) {
+                e.stopPropagation();
+                currentSelectedDate.setDate(currentSelectedDate.getDate() - 1);
+                updateMonthDisplay(currentSelectedDate);
+                updateTabs(currentSelectedDate);
+                updateCurrentDayLabel();
+                loadTasks();
+            });
+        }
+
+        const nextDay = document.getElementById('nextDay');
+        if (nextDay) {
+            nextDay.addEventListener('click', function(e) {
+                e.stopPropagation();
+                currentSelectedDate.setDate(currentSelectedDate.getDate() + 1);
+                updateMonthDisplay(currentSelectedDate);
+                updateTabs(currentSelectedDate);
+                updateCurrentDayLabel();
+                loadTasks();
+            });
+        }
+
+        function updateCurrentDayLabel() {
+            const dayNames = ['Вс', 'Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб'];
+            const dayName = dayNames[currentSelectedDate.getDay()];
+            const dayNum = currentSelectedDate.getDate();
+            const today = formatDate(new Date());
+            const currentDay = document.getElementById('currentDay');
+            if (currentDay) {
+                currentDay.textContent = formatDate(currentSelectedDate) === today ? 'Сегодня' : dayName + '. ' + dayNum;
+            }
+        }
+
+        let currentTaskItem = null;
+        function openModal(taskItem) {
+            const modal = document.getElementById('taskForm');
+            const backdrop = document.getElementById('backdrop');
+            if (!modal || !backdrop) return;
+            currentTaskItem = taskItem;
+            modal.classList.add('active');
+            backdrop.classList.add('active');
+            if (taskItem) {
+                document.getElementById('modalTaskTitle').textContent = taskItem.dataset.title;
+                document.getElementById('modalTaskInput').value = taskItem.dataset.title;
+                document.getElementById('modalTaskDesc').value = taskItem.dataset.description || '';
+                document.getElementById('modalTaskDate').value = taskItem.dataset.date;
+                document.getElementById('modalTaskTime').value = taskItem.dataset.time || '';
+                document.getElementById('modalTaskReminder').checked = taskItem.dataset.reminder === "true";
+                document.getElementById('modalTaskPriority').value = taskItem.dataset.priority;
+                document.getElementById('modalCompleteBtn').textContent = taskItem.dataset.completed === "true" ? "Вернуть" : "Выполнить";
+            } else {
+                document.getElementById('modalTaskTitle').textContent = "Новая задача";
+                document.getElementById('modalTaskInput').value = "";
+                document.getElementById('modalTaskDesc').value = "";
+                document.getElementById('modalTaskDate').value = formatDate(new Date());
+                document.getElementById('modalTaskTime').value = "";
+                document.getElementById('modalTaskReminder').checked = false;
+                document.getElementById('modalTaskPriority').value = "Medium";
+                document.getElementById('modalCompleteBtn').textContent = "Выполнить";
+            }
+        }
+
+        function closeModal() {
+            const modal = document.getElementById('taskForm');
+            const backdrop = document.getElementById('backdrop');
+            if (!modal || !backdrop) return;
+            modal.classList.add('closing');
+            setTimeout(() => {
+                modal.classList.remove('active', 'closing');
+                backdrop.classList.remove('active');
+            }, 300);
+        }
+
+        const addTaskBtn = document.getElementById('addTaskBtn');
+        if (addTaskBtn) {
+            addTaskBtn.addEventListener('click', function() {
+                openModal(null);
+            });
+        }
+
+        const closeModalBtn = document.getElementById('closeModalBtn');
+        if (closeModalBtn) {
+            closeModalBtn.addEventListener('click', closeModal);
+        }
+
+        const backdrop = document.getElementById('backdrop');
+        if (backdrop) {
+            backdrop.addEventListener('click', closeModal);
+        }
+
+        const modalTaskInput = document.getElementById('modalTaskInput');
+        if (modalTaskInput) {
+            modalTaskInput.addEventListener('input', function() {
+                document.getElementById('modalTaskTitle').textContent = this.value || 'Задача';
+            });
+        }
+
+        const modalSubmitBtn = document.getElementById('modalSubmitBtn');
+        if (modalSubmitBtn) {
+            modalSubmitBtn.addEventListener('click', async function() {
+                const titleInput = document.getElementById('modalTaskInput');
+                const dateInput = document.getElementById('modalTaskDate');
+                if (!titleInput.value.trim()) {
+                    titleInput.style.borderColor = '#BD0935';
+                    titleInput.focus();
+                    return;
+                }
+                if (new Date(dateInput.value) < new Date().setHours(0,0,0,0)) {
+                    dateInput.style.borderColor = '#BD0935';
+                    return;
+                }
+
+                const title = titleInput.value.trim();
+                const description = document.getElementById('modalTaskDesc').value;
+                const date = dateInput.value;
+                const time = document.getElementById('modalTaskTime').value;
+                const deadline = date && time ? `${date}T${time}:00` : date ? `${date}T00:00:00` : null;
+                const priority = document.getElementById('modalTaskPriority').value;
+                const reminder = document.getElementById('modalTaskReminder').checked;
+
+                if (currentTaskItem) {
+                    const taskId = currentTaskItem.dataset.id;
+                    try {
+                        const response = await fetch(`https://task-manager-tj38.onrender.com/tasks/${taskId}?user_id=${user_id}`, {
+                            method: 'PATCH',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                completed: currentTaskItem.dataset.completed === "true"
+                            })
+                        });
+                        if (!response.ok) throw new Error(`Ошибка ${response.status}`);
+                        const updatedTask = await response.json();
+                        const taskIndex = visibleTasks.findIndex(t => t.id === parseInt(taskId));
+                        if (taskIndex !== -1) visibleTasks[taskIndex] = updatedTask;
+                        renderTasks();
+                    } catch (error) {
+                        console.error('Ошибка при обновлении задачи:', error);
+                        alert(`Не удалось обновить задачу: ${error.message}`);
+                    }
+                } else {
+                    try {
+                        const response = await fetch(`https://task-manager-tj38.onrender.com/tasks?user_id=${user_id}`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                title,
+                                description,
+                                deadline,
+                                priority,
+                                reminder,
+                                completed: false
+                            })
+                        });
+                        if (!response.ok) throw new Error(`Ошибка ${response.status}`);
+                        const newTask = await response.json();
+                        visibleTasks.push(newTask);
+                        renderTasks();
+                    } catch (error) {
+                        console.error('Ошибка при создании задачи:', error);
+                        alert(`Не удалось создать задачу: ${error.message}`);
+                    }
+                }
+                closeModal();
+            });
+        }
+
+        const visibleTasks = [];
+        const taskList = document.getElementById('taskList');
+
+        function createTaskElement(task) {
+            const taskItem = document.createElement('div');
+            taskItem.className = 'task-item';
+            taskItem.dataset.id = task.id;
+            taskItem.dataset.title = task.title;
+            taskItem.dataset.description = task.description || '';
+            taskItem.dataset.date = task.deadline ? task.deadline.split('T')[0] : '';
+            taskItem.dataset.time = task.deadline ? task.deadline.split('T')[1]?.slice(0, 5) : '';
+            taskItem.dataset.priority = task.priority;
+            taskItem.dataset.reminder = task.reminder || false;
+            taskItem.dataset.completed = task.completed || false;
+
+            const checkbox = document.createElement('input');
+            checkbox.type = 'checkbox';
+            checkbox.className = 'checkbox';
+            checkbox.checked = task.completed || false;
+            if (task.completed) taskItem.classList.add('completed');
+
+            checkbox.addEventListener('click', async function(event) {
+                event.stopPropagation();
+                const isCompleted = checkbox.checked;
+                taskItem.classList.toggle('completed');
+                taskItem.dataset.completed = isCompleted;
+
+                try {
+                    const taskId = taskItem.dataset.id;
+                    const response = await fetch(`https://task-manager-tj38.onrender.com/tasks/${taskId}?user_id=${user_id}`, {
+                        method: 'PATCH',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ completed: isCompleted })
+                    });
+                    if (!response.ok) throw new Error(`Ошибка ${response.status}`);
+                    const updatedTask = await response.json();
+                    const taskIndex = visibleTasks.findIndex(t => t.id === parseInt(taskId));
+                    if (taskIndex !== -1) visibleTasks[taskIndex].completed = updatedTask.completed;
+                    renderTasks();
+                } catch (error) {
+                    console.error('Ошибка при обновлении задачи:', error);
+                    alert(`Не удалось обновить задачу: ${error.message}`);
+                    checkbox.checked = !isCompleted;
+                    taskItem.classList.toggle('completed');
+                    taskItem.dataset.completed = !isCompleted;
+                }
+            });
+
+            const taskInfo = document.createElement('div');
+            taskInfo.className = 'task-info';
+            const titleElem = document.createElement('div');
+            titleElem.className = 'task-title';
+            titleElem.textContent = task.title;
+            const dateElem = document.createElement('div');
+            dateElem.className = 'task-date';
+            dateElem.textContent = task.deadline 
+                ? new Date(task.deadline).toLocaleString('ru-RU', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) 
+                : 'Без даты';
+            taskInfo.appendChild(titleElem);
+            taskInfo.appendChild(dateElem);
+
+            const priorityElem = document.createElement('div');
+            priorityElem.className = 'priority';
+            if (task.priority === 'High') priorityElem.classList.add('priority-high');
+            else if (task.priority === 'Medium') priorityElem.classList.add('priority-medium');
+            else priorityElem.classList.add('priority-low');
+            priorityElem.textContent = task.priority === 'High' ? 'Высокий' : task.priority === 'Medium' ? 'Средний' : 'Низкий';
+
+            const deleteBtn = document.createElement('button');
+            deleteBtn.className = 'delete-btn';
+            deleteBtn.textContent = 'Удалить';
+            deleteBtn.addEventListener('click', async function(event) {
+                event.stopPropagation();
+                const taskId = task.id;
+                try {
+                    const response = await fetch(`https://task-manager-tj38.onrender.com/tasks/${taskId}?user_id=${user_id}`, {
+                        method: 'DELETE',
+                    });
+                    if (!response.ok) throw new Error(`Ошибка ${response.status}`);
+                    const index = visibleTasks.findIndex(t => t.id === taskId);
+                    if (index !== -1) visibleTasks.splice(index, 1);
+                    renderTasks();
+                } catch (error) {
+                    console.error('Ошибка при удалении задачи:', error);
+                    alert(`Не удалось удалить задачу: ${error.message}`);
+                }
+            });
+
+            taskItem.appendChild(checkbox);
+            taskItem.appendChild(taskInfo);
+            taskItem.appendChild(priorityElem);
+            taskItem.appendChild(deleteBtn);
+
+            taskItem.addEventListener('click', function() {
+                openModal(taskItem);
+            });
+
+            return taskItem;
+        }
+
+        function renderTasks() {
+            if (!taskList) return;
+            taskList.innerHTML = '';
+            visibleTasks.forEach(task => {
+                taskList.appendChild(createTaskElement(task));
+            });
+        }
+
+        async function loadTasks() {
+            try {
+                const selectedDate = formatDate(currentSelectedDate);
+                const response = await fetch(`https://task-manager-tj38.onrender.com/tasks?user_id=${user_id}&date=${selectedDate}`, {
+                    method: 'GET',
+                    headers: { 'Content-Type': 'application/json' },
+                });
+                if (!response.ok) throw new Error(`Ошибка ${response.status}`);
+                const tasks = await response.json();
+                visibleTasks.length = 0; // Очистка перед загрузкой новых данных
+                tasks.forEach(task => visibleTasks.push(task));
+                renderTasks();
+            } catch (error) {
+                console.error('Ошибка при загрузке задач:', error);
+                alert(`Не удалось загрузить задачи: ${error.message}`);
+            }
+        }
+
+        loadTasks();
     });
-  </script>
+</script>
 </body>
 </html>
