@@ -4,14 +4,18 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from database import get_db, engine
 from models import Base
 from crud import get_tasks, create_task, delete_task, update_task
-from fastapi.encoders import jsonable_encoder
 from pydantic import BaseModel
 from typing import Optional
 from datetime import datetime, date
-from fastapi import Body
 from enum import StrEnum
+from contextlib import asynccontextmanager
 
 # Pydantic-модель для входящих данных при создании задачи
+class Priority(StrEnum):
+    HIGH = "High"
+    MEDIUM = "Medium"
+    LOW = "Low"
+
 class TaskCreate(BaseModel):
     title: str
     description: Optional[str] = None
@@ -19,11 +23,6 @@ class TaskCreate(BaseModel):
     priority: Priority = Priority.MEDIUM
     reminder: bool = False
     completed: bool = False
-    
-class Priority(StrEnum):
-    HIGH = "High"
-    MEDIUM = "Medium"
-    LOW = "Low"
 
 # Pydantic-модель для вывода задачи
 class TaskOut(BaseModel):
@@ -39,16 +38,14 @@ class TaskOut(BaseModel):
     class Config:
         from_attributes = True
 
-# Настройка CORS
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["GET", "POST", "DELETE", "OPTIONS", "PATCH"],
-    allow_headers=["Content-Type", "Authorization"],
-)
-
-from contextlib import asynccontextmanager
+# Pydantic-модель для обновления задачи
+class TaskUpdate(BaseModel):
+    title: Optional[str] = None
+    description: Optional[str] = None
+    deadline: Optional[str] = None
+    priority: Optional[str] = None
+    reminder: Optional[bool] = None
+    completed: Optional[bool] = None
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -58,6 +55,15 @@ async def lifespan(app: FastAPI):
     yield
 
 app = FastAPI(lifespan=lifespan)
+
+# Настройка CORS
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["GET", "POST", "DELETE", "OPTIONS", "PATCH"],
+    allow_headers=["Content-Type", "Authorization"],
+)
 
 @app.get("/")
 async def root():
@@ -81,9 +87,6 @@ async def create_new_task(task: TaskCreate, user_id: int, db: AsyncSession = Dep
         completed=task.completed
     )
     return new_task
-    except Exception as e:
-        print(f"Error in create_task: {str(e)}")
-        raise HTTPException(status_code=400, detail=f"Ошибка при создании задачи: {str(e)}")
 
 @app.delete("/tasks/{task_id}")
 async def delete_task_endpoint(task_id: int, user_id: int, db: AsyncSession = Depends(get_db)):
@@ -91,17 +94,6 @@ async def delete_task_endpoint(task_id: int, user_id: int, db: AsyncSession = De
     if not task:
         raise HTTPException(status_code=404, detail="Задача не найдена или не принадлежит пользователю")
     return {"message": "Задача удалена"}
-    except Exception as e:
-        print(f"Error in delete_task: {str(e)}")
-        raise HTTPException(status_code=500, detail=f"Ошибка сервера: {str(e)}")
-
-class TaskUpdate(BaseModel):
-    title: Optional[str] = None
-    description: Optional[str] = None
-    deadline: Optional[str] = None
-    priority: Optional[str] = None
-    reminder: Optional[bool] = None
-    completed: Optional[bool] = None
 
 @app.patch("/tasks/{task_id}", response_model=TaskOut)
 async def update_task_endpoint(task_id: int, task_update: TaskUpdate, user_id: int, db: AsyncSession = Depends(get_db)):
