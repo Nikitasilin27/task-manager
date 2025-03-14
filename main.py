@@ -9,6 +9,7 @@ from typing import Optional
 from datetime import datetime, date
 from enum import StrEnum
 from contextlib import asynccontextmanager
+from reminders import start_scheduler
 
 # Pydantic-модель для входящих данных при создании задачи
 class Priority(StrEnum):
@@ -51,6 +52,7 @@ class TaskUpdate(BaseModel):
 async def lifespan(app: FastAPI):
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
+    start_scheduler()  # Запускаем планировщик
     yield
 
 app = FastAPI(lifespan=lifespan)
