@@ -24,7 +24,7 @@ async def send_telegram_message(chat_id: int, message: str):
 async def check_reminders():
     print("Проверка напоминаний началась:", datetime.utcnow())  # Для отладки
     async with async_session() as db:
-        now = datetime.utcnow()
+        now = datetime.utcnow().replace(tzinfo=timezone.utc)  # Убедимся, что время в UTC
         one_hour_later = now + timedelta(hours=1)
         query = select(Task).where(
             Task.reminder == True,
