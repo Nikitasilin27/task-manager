@@ -22,6 +22,7 @@ async def send_telegram_message(chat_id: int, message: str):
                 print(f"Ошибка отправки сообщения: {await response.text()}")
 
 async def check_reminders():
+    print("Проверка напоминаний началась:", datetime.utcnow())  # Для отладки
     async with async_session() as db:
         now = datetime.utcnow()
         one_hour_later = now + timedelta(hours=1)
@@ -32,12 +33,16 @@ async def check_reminders():
         )
         result = await db.execute(query)
         tasks = result.scalars().all()
+        print(f"Найдено задач для напоминания: {len(tasks)}")  # Для отладки
         for task in tasks:
+            print(f"Отправляем напоминание для задачи: {task.title}, дедлайн: {task.deadline}")  # Для отладки
             message = f"Напоминание: задача '{task.title}' через час! Дедлайн: {task.deadline}"
             await send_telegram_message(chat_id=task.user_id, message=message)
             task.reminder = False  # Отключаем, чтобы не повторялось
             await db.commit()
 
 def start_scheduler():
+    print("Запускаем планировщик...")  # Для отладки
     scheduler.add_job(check_reminders, 'interval', minutes=1)  # Проверка каждую минуту
     scheduler.start()
+    print("Планировщик запущен.")  # Для отладки
