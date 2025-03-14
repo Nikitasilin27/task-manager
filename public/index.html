@@ -1138,33 +1138,39 @@
         }
       }
 
-      async function loadTasks() {
-        const loadingIndicator = document.getElementById('loadingIndicator');
-        if (!loadingIndicator) return;
-        loadingIndicator.style.display = 'block';
-        try {
-          const selectedDate = formatDate(currentSelectedDate);
-          console.log(`Загрузка задач для user_id=${user_id} и date=${selectedDate}`);
-          const response = await fetch(`${BACKEND_URL}/tasks?user_id=${user_id}&date=${selectedDate}`, {
+async function loadTasks() {
+    const loadingIndicator = document.getElementById('loadingIndicator');
+    if (!loadingIndicator) return;
+    loadingIndicator.style.display = 'block';
+    try {
+        const selectedDate = formatDate(currentSelectedDate);
+        console.log(`Загрузка задач для user_id=${user_id} и date=${selectedDate}`);
+        const response = await fetch(`${BACKEND_URL}/tasks?user_id=${user_id}&date=${selectedDate}`, {
             method: 'GET',
             headers: { 'Content-Type': 'application/json' },
-          });
-          if (!response.ok) {
+        });
+        if (!response.ok) {
             const errorText = await response.text();
             throw new Error(`HTTP ошибка ${response.status}: ${errorText}`);
-          }
-          const tasks = await response.json();
-          visibleTasks.length = 0;
-          tasks.forEach(task => visibleTasks.push(task));
-          renderTasks();
-        } catch (error) {
-          console.error('Ошибка при загрузке задач:', error);
-          alert(`Не удалось загрузить задачи: ${error.message}`);
-          taskList.innerHTML = '<div class="loading">Ошибка загрузки задач</div>';
-        } finally {
-          loadingIndicator.style.display = 'none';
         }
-      }
+        const tasks = await response.json();
+        visibleTasks.length = 0;
+        tasks.forEach(task => {
+            // Фильтруем задачи только для выбранного дня
+            const taskDate = task.deadline ? new Date(task.deadline).toISOString().split('T')[0] : null;
+            if (taskDate === selectedDate) {
+                visibleTasks.push(task);
+            }
+        });
+        renderTasks();
+    } catch (error) {
+        console.error('Ошибка при загрузке задач:', error);
+        alert(`Не удалось загрузить задачи: ${error.message}`);
+        taskList.innerHTML = '<div class="loading">Ошибка загрузки задач</div>';
+    } finally {
+        loadingIndicator.style.display = 'none';
+    }
+}
 
       updateCurrentDayLabel();
       loadTasks();
