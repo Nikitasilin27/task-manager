@@ -2,9 +2,9 @@ from telegram import Bot
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from datetime import datetime, timezone
 import logging
-from crud import get_tasks
+from crud import get_tasks, get_active_users
 import os
-import asyncio
+from database import get_db
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -14,21 +14,28 @@ bot = Bot(os.environ.get("7822793225:AAFug__PTGhCEmMkPBii0I75KbsNHBuGXd8"))
 
 async def get_telegram_users():
     updates = await bot.get_updates(offset=-1, timeout=10)
-    user_ids = {update.message.chat.id for update in updates if update.message}
-    return list(user_ids)
+    return [update.message.chat.id for update in updates if update.message]
 
 async def check_reminders():
     logger.info("Проверка напоминаний...")
-    users = await get_telegram_users()  # Динамически получаем пользователей из Telegram
-    for user_id in users:
-        tasks = await get_tasks(None, user_id)  # Предполагаем, что get_tasks работает без сессии для простоты
-        for task in tasks:
-            if task.reminder and task.deadline and not task.completed:
-                deadline = task.deadline.astimezone(timezone.utc)
-                now = datetime.now(timezone.utc)
-                if (deadline - now).total_seconds() <= 3600:  # Напоминание за час
-                    logger.info(f"Напоминание для задачи {task.title} (user_id={user_id})")
-                    await bot.send_message(chat_id=user_id, text=f"Напоминание: {task.title} (дедлайн: {deadline})")
+    async for db in get_db():
+        try:
+            db_users = await get_active_users(db)  # Пользователи с задачами
+            tg_users = await get_telegram_users()  # Пользователи из Telegram
+            users = list(set(db_users + tg_users))  # Уникальный список
+            for user_id in users:
+                tasks = await get_tasks(db, user_id)
+                for task in tasks:
+                    if task.reminder and task.deadline and not task.completed:
+                        deadline = task.deadline.astimezone(timezone.utc)
+                        now = datetime.now(timezone.utc)
+                        if (deadline - now).total_seconds() <= 3600:
+                            logger.info(f"Напоминание для задачи {task.title} (user_id={user_id})")
+                            await bot.send_message(chat_id=user_id, text=f"Напоминание: {task.title} (дедлайн: {deadline})")
+        except Exception as e:
+            logger.error(f"Ошибка при проверке напоминаний: {str(e)}")
+        finally:
+            await db.close()
 
 def start_scheduler():
     scheduler.add_job(check_reminders, 'interval', minutes=1)
