@@ -1,48 +1,36 @@
-import os
+from telegram import Bot
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.future import select
-from datetime import datetime, timedelta
-import aiohttp
-from models import Task
-from database import async_session
+from datetime import datetime, timezone
+import logging
+from crud import get_tasks
+import os
+import asyncio
 
-TELEGRAM_BOT_TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN")
-if not TELEGRAM_BOT_TOKEN:
-    raise ValueError("TELEGRAM_BOT_TOKEN не задан в переменных окружения")
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 scheduler = AsyncIOScheduler()
+bot = Bot(os.environ.get("7822793225:AAFug__PTGhCEmMkPBii0I75KbsNHBuGXd8"))
 
-async def send_telegram_message(chat_id: int, message: str):
-    async with aiohttp.ClientSession() as session:
-        url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage"
-        payload = {"chat_id": chat_id, "text": message}
-        async with session.post(url, json=payload) as response:
-            if response.status != 200:
-                print(f"Ошибка отправки сообщения: {await response.text()}")
+async def get_telegram_users():
+    updates = await bot.get_updates(offset=-1, timeout=10)
+    user_ids = {update.message.chat.id for update in updates if update.message}
+    return list(user_ids)
 
 async def check_reminders():
-    print("Проверка напоминаний началась:", datetime.utcnow())  # Для отладки
-    async with async_session() as db:
-        now = datetime.utcnow().replace(tzinfo=timezone.utc)  # Убедимся, что время в UTC
-        one_hour_later = now + timedelta(hours=1)
-        query = select(Task).where(
-            Task.reminder == True,
-            Task.deadline >= now,
-            Task.deadline <= one_hour_later
-        )
-        result = await db.execute(query)
-        tasks = result.scalars().all()
-        print(f"Найдено задач для напоминания: {len(tasks)}")  # Для отладки
+    logger.info("Проверка напоминаний...")
+    users = await get_telegram_users()  # Динамически получаем пользователей из Telegram
+    for user_id in users:
+        tasks = await get_tasks(None, user_id)  # Предполагаем, что get_tasks работает без сессии для простоты
         for task in tasks:
-            print(f"Отправляем напоминание для задачи: {task.title}, дедлайн: {task.deadline}")  # Для отладки
-            message = f"Напоминание: задача '{task.title}' через час! Дедлайн: {task.deadline}"
-            await send_telegram_message(chat_id=task.user_id, message=message)
-            task.reminder = False  # Отключаем, чтобы не повторялось
-            await db.commit()
+            if task.reminder and task.deadline and not task.completed:
+                deadline = task.deadline.astimezone(timezone.utc)
+                now = datetime.now(timezone.utc)
+                if (deadline - now).total_seconds() <= 3600:  # Напоминание за час
+                    logger.info(f"Напоминание для задачи {task.title} (user_id={user_id})")
+                    await bot.send_message(chat_id=user_id, text=f"Напоминание: {task.title} (дедлайн: {deadline})")
 
 def start_scheduler():
-    print("Запускаем планировщик...")  # Для отладки
-    scheduler.add_job(check_reminders, 'interval', minutes=1)  # Проверка каждую минуту
+    scheduler.add_job(check_reminders, 'interval', minutes=1)
     scheduler.start()
-    print("Планировщик запущен.")  # Для отладки
+    logger.info("Планировщик напоминаний запущен")
