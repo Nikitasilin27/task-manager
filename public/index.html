@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Task Manager Mini App</title>
   <style>
-    /* Стили для кнопки удаления */
+    /* Стили остаются без изменений, как в исходном документе */
     .delete-btn {
       padding: 4px 8px;
       background: #BD0935;
@@ -18,7 +18,6 @@
     .delete-btn:hover {
       background: #A0072F;
     }
-    /* Основные стили */
     @import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&display=swap');
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Manrope', Arial, sans-serif; }
     body {
@@ -39,11 +38,11 @@
       box-shadow: none;
       background: var(--tg-theme-bg-color, #121212);
       position: relative;
-      scrollbar-width: none; /* Firefox */
-      -ms-overflow-style: none; /* IE and Edge */
+      scrollbar-width: none;
+      -ms-overflow-style: none;
     }
     .container::-webkit-scrollbar {
-      display: none; /* Chrome, Safari, Opera */
+      display: none;
     }
     .header {
       height: 80px;
@@ -164,10 +163,10 @@
       border-bottom: 2px solid #FF5722;
     }
     .task-list {
-      padding: 16px 16px 80px 16px; /* Отступ снизу для кнопки */
+      padding: 16px 16px 80px 16px;
       background: var(--tg-theme-bg-color, #121212);
-      overflow-y: auto; /* Включаем прокрутку */
-      max-height: calc(100vh - 220px); /* Ограничиваем высоту */
+      overflow-y: auto;
+      max-height: calc(100vh - 220px);
     }
     .task-item {
       display: flex;
@@ -264,7 +263,7 @@
       justify-content: center; 
       height: 50px; 
       background: #2C2C2E; 
-      color: #FFFFFF; 
+      color: #FFFFFF;
       opacity: 0.60;
       font-size: 16px; 
       font-weight: 600; 
@@ -506,86 +505,70 @@
       .task-form {
         width: 280px;
       }
-/* По умолчанию тёмная тема */
-:root {
-  --tg-theme-bg-color: #121212;
-  --tg-theme-text-color: #FFFFFF;
-  --tg-theme-secondary-bg-color: #1A1A1A;
-}
-
-/* Светлая тема */
-body[data-theme="light"] {
-  --tg-theme-bg-color: #FFFFFF;
-  --tg-theme-text-color: #000000;
-  --tg-theme-secondary-bg-color: #F5F5F5;
-}
-
-body[data-theme="light"] .container,
-body[data-theme="light"] .header,
-body[data-theme="light"] .date-container,
-body[data-theme="light"] .tabs,
-body[data-theme="light"] .task-list {
-  background: var(--tg-theme-bg-color, #FFFFFF);
-  color: var(--tg-theme-text-color, #000000);
-}
-
-body[data-theme="light"] .header {
-  border-bottom: 1px solid #E0E0E0;
-}
-
-body[data-theme="light"] .user-info .name,
-body[data-theme="light"] .user-info .username,
-body[data-theme="light"] .header .title {
-  color: var(--tg-theme-text-color, #000000);
-}
-
-body[data-theme="light"] .date-select,
-body[data-theme="light"] .day-select {
-  border: 1px solid #E0E0E0;
-  color: #666666;
-}
-
-body[data-theme="light"] .date-select .icon-container svg,
-body[data-theme="light"] .day-select .icon-container svg {
-  fill: #666666;
-}
-
-body[data-theme="light"] .tabs {
-  border-bottom: 1px solid #E0E0E0;
-}
-
-body[data-theme="light"] .tab {
-  color: #999999;
-}
-
-body[data-theme="light"] .tab.active {
-  color: #FF5722;
-  border-bottom: 2px solid #FF5722;
-}
-
-body[data-theme="light"] .task-item {
-  background: var(--tg-theme-secondary-bg-color, #F5F5F5);
-  border-bottom: 1px solid #E0E0E0;
-}
-
-body[data-theme="light"] .task-item .task-title {
-  color: var(--tg-theme-text-color, #000000);
-}
-
-body[data-theme="light"] .task-form {
-  background: #FFFFFF;
-  border: 1px solid #E0E0E0;
-}
-
-body[data-theme="light"] .task-form .header-form .title {
-  color: var(--tg-theme-text-color, #000000);
-}
+    }
+    :root {
+      --tg-theme-bg-color: #121212;
+      --tg-theme-text-color: #FFFFFF;
+      --tg-theme-secondary-bg-color: #1A1A1A;
+    }
+    body[data-theme="light"] {
+      --tg-theme-bg-color: #FFFFFF;
+      --tg-theme-text-color: #000000;
+      --tg-theme-secondary-bg-color: #F5F5F5;
+    }
+    body[data-theme="light"] .container,
+    body[data-theme="light"] .header,
+    body[data-theme="light"] .date-container,
+    body[data-theme="light"] .tabs,
+    body[data-theme="light"] .task-list {
+      background: var(--tg-theme-bg-color, #FFFFFF);
+      color: var(--tg-theme-text-color, #000000);
+    }
+    body[data-theme="light"] .header {
+      border-bottom: 1px solid #E0E0E0;
+    }
+    body[data-theme="light"] .user-info .name,
+    body[data-theme="light"] .user-info .username,
+    body[data-theme="light"] .header .title {
+      color: var(--tg-theme-text-color, #000000);
+    }
+    body[data-theme="light"] .date-select,
+    body[data-theme="light"] .day-select {
+      border: 1px solid #E0E0E0;
+      color: #666666;
+    }
+    body[data-theme="light"] .date-select .icon-container svg,
+    body[data-theme="light"] .day-select .icon-container svg {
+      fill: #666666;
+    }
+    body[data-theme="light"] .tabs {
+      border-bottom: 1px solid #E0E0E0;
+    }
+    body[data-theme="light"] .tab {
+      color: #999999;
+    }
+    body[data-theme="light"] .tab.active {
+      color: #FF5722;
+      border-bottom: 2px solid #FF5722;
+    }
+    body[data-theme="light"] .task-item {
+      background: var(--tg-theme-secondary-bg-color, #F5F5F5);
+      border-bottom: 1px solid #E0E0E0;
+    }
+    body[data-theme="light"] .task-item .task-title {
+      color: var(--tg-theme-text-color, #000000);
+    }
+    body[data-theme="light"] .task-form {
+      background: #FFFFFF;
+      border: 1px solid #E0E0E0;
+    }
+    body[data-theme="light"] .task-form .header-form .title {
+      color: var(--tg-theme-text-color, #000000);
     }
   </style>
 </head>
 <body>
   <div class="container">
-    <!-- Заголовок с информацией о пользователе и названием приложения -->
     <div class="header">
       <div class="user-section">
         <div class="avatar"></div>
@@ -596,7 +579,6 @@ body[data-theme="light"] .task-form .header-form .title {
       </div>
       <div class="title">Task</div>
     </div>
-    <!-- Контейнер для выбора даты -->
     <div class="date-container">
       <div class="date-select" id="monthDisplay">
         <span id="monthText">Март 2025</span>
@@ -620,21 +602,15 @@ body[data-theme="light"] .task-form .header-form .title {
         </div>
       </div>
     </div>
-    <!-- Скрытый input для выбора даты -->
     <input type="date" id="datePicker" style="display:none;">
-    <!-- Вкладки с днями недели -->
     <div class="tabs" id="tabsContainer"></div>
-    <!-- Список задач -->
     <div class="task-list" id="taskList">
       <div class="loading" id="loadingIndicator">Загрузка...</div>
     </div>
-    <!-- Кнопка добавления задачи -->
     <div class="add-button">
       <button id="addTaskBtn">Добавить задачу</button>
     </div>
-    <!-- Затемнение фона при открытии модального окна -->
     <div class="backdrop" id="backdrop"></div>
-    <!-- Форма для создания/редактирования задачи -->
     <div class="task-form" id="taskForm">
       <div class="header-form">
         <div class="title" id="modalTaskTitle">Задача</div>
@@ -678,37 +654,34 @@ body[data-theme="light"] .task-form .header-form .title {
     </div>
   </div>
 
-  <!-- Подключение Telegram WebApp SDK -->
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <script>
     document.addEventListener('DOMContentLoaded', function() {
-      console.log('DOM loaded, initializing app...');
+      console.log('DOM загружен, инициализация приложения...');
 
-       // Объявляем visibleTasks в начале
       const visibleTasks = [];
       const taskList = document.getElementById('taskList');
-      
-      // Инициализация Telegram WebApp и получение user_id
+      const BACKEND_URL = 'https://task-manager-tj38.onrender.com'; // Убедитесь, что это правильный URL вашего сервера
+
       let user_id;
       try {
         Telegram.WebApp.ready();
-        const theme = Telegram.WebApp.colorScheme; // 'light' или 'dark'
+        const theme = Telegram.WebApp.colorScheme;
         document.body.setAttribute('data-theme', theme);
         console.log('Тема применена:', theme);
         const user = Telegram.WebApp.initDataUnsafe.user;
         if (user && user.id) {
-          user_id = user.id; // Telegram ID пользователя для всех запросов к API
+          user_id = user.id;
           const name = user.first_name + (user.last_name ? ' ' + user.last_name : '');
-          const username = user.username ? '@' + user.username : 'No username';
+          const username = user.username ? '@' + user.username : 'Нет имени пользователя';
           const avatar = user.photo_url || 'https://via.placeholder.com/40';
           document.querySelector('.name').textContent = name;
           document.querySelector('.username').textContent = username;
           document.querySelector('.avatar').style.backgroundImage = `url(${avatar})`;
           document.querySelector('.avatar').style.backgroundSize = 'cover';
           document.querySelector('.avatar').style.backgroundColor = 'transparent';
-          console.log('Telegram WebApp initialized with user_id:', user_id);
+          console.log('Telegram WebApp инициализирован с user_id:', user_id);
 
-          // Применение темы Telegram
           const themeParams = Telegram.WebApp.themeParams;
           if (themeParams) {
             document.documentElement.style.setProperty('--tg-theme-bg-color', themeParams.bg_color || '#121212');
@@ -719,11 +692,11 @@ body[data-theme="light"] .task-form .header-form .title {
           throw new Error("Не удалось получить user_id из Telegram");
         }
       } catch (error) {
-        console.error('Telegram WebApp initialization failed:', error);
+        console.error('Ошибка инициализации Telegram WebApp:', error);
         alert('Не удалось инициализировать Telegram WebApp. Откройте через Telegram.');
+        return;
       }
 
-      // Функция форматирования даты в формат YYYY-MM-DD для API
       function formatDate(date) {
         let d = new Date(date);
         let month = '' + (d.getMonth() + 1);
@@ -734,11 +707,10 @@ body[data-theme="light"] .task-form .header-form .title {
         return [year, month, day].join('-');
       }
 
-      // Получение дат недели для вкладок (начиная с понедельника)
       function getWeekDates(selectedDate) {
         let date = new Date(selectedDate);
         let day = date.getDay();
-        let diff = (day === 0 ? -6 : 1 - day); // Находим понедельник
+        let diff = (day === 0 ? -6 : 1 - day);
         let monday = new Date(date);
         monday.setDate(date.getDate() + diff);
         let weekDates = [];
@@ -750,7 +722,6 @@ body[data-theme="light"] .task-form .header-form .title {
         return weekDates;
       }
 
-      // Обновление вкладок с датами недели
       function updateTabs(selectedDate) {
         const tabsContainer = document.getElementById('tabsContainer');
         if (!tabsContainer) return;
@@ -776,7 +747,7 @@ body[data-theme="light"] .task-form .header-form .title {
             currentSelectedDate = new Date(tab.dataset.date);
             updateMonthDisplay(currentSelectedDate);
             updateCurrentDayLabel();
-            loadTasks(); // Загрузка задач для выбранной даты
+            loadTasks();
           });
           if (formatDate(date) === formatDate(selectedDate)) {
             tab.classList.add('active');
@@ -785,7 +756,6 @@ body[data-theme="light"] .task-form .header-form .title {
         });
       }
 
-      // Текущая выбранная дата (по умолчанию - сегодня)
       let currentSelectedDate = new Date();
       function updateMonthDisplay(date) {
         const monthText = document.getElementById('monthText');
@@ -797,7 +767,6 @@ body[data-theme="light"] .task-form .header-form .title {
       updateMonthDisplay(currentSelectedDate);
       updateTabs(currentSelectedDate);
 
-      // Обработчик клика по выбору месяца
       const monthDisplay = document.getElementById('monthDisplay');
       if (monthDisplay) {
         monthDisplay.addEventListener('click', function() {
@@ -805,7 +774,6 @@ body[data-theme="light"] .task-form .header-form .title {
         });
       }
 
-      // Обработчик выбора даты через date picker
       const datePicker = document.getElementById('datePicker');
       if (datePicker) {
         datePicker.addEventListener('change', function() {
@@ -818,7 +786,6 @@ body[data-theme="light"] .task-form .header-form .title {
         });
       }
 
-      // Переключение на предыдущий день
       const prevDay = document.getElementById('prevDay');
       if (prevDay) {
         prevDay.addEventListener('click', function(e) {
@@ -831,7 +798,6 @@ body[data-theme="light"] .task-form .header-form .title {
         });
       }
 
-      // Переключение на следующий день
       const nextDay = document.getElementById('nextDay');
       if (nextDay) {
         nextDay.addEventListener('click', function(e) {
@@ -844,7 +810,6 @@ body[data-theme="light"] .task-form .header-form .title {
         });
       }
 
-      // Обновление метки текущего дня
       function updateCurrentDayLabel() {
         const dayNames = ['Вс', 'Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб'];
         const dayName = dayNames[currentSelectedDate.getDay()];
@@ -856,7 +821,6 @@ body[data-theme="light"] .task-form .header-form .title {
         }
       }
 
-      // Открытие модального окна для создания/редактирования задачи
       let currentTaskItem = null;
       function openModal(taskItem) {
         const modal = document.getElementById('taskForm');
@@ -886,20 +850,18 @@ body[data-theme="light"] .task-form .header-form .title {
         }
       }
 
-      // Закрытие модального окна с анимацией
-function closeModal() {
-    const modal = document.getElementById('taskForm');
-    const backdrop = document.getElementById('backdrop');
-    if (!modal || !backdrop) return;
-    modal.classList.add('closing');
-    setTimeout(() => {
-        modal.classList.remove('active', 'closing');
-        backdrop.classList.remove('active');
-        document.querySelector('meta[name="viewport"]').setAttribute('content', 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no');
-    }, 300);
-}
+      function closeModal() {
+        const modal = document.getElementById('taskForm');
+        const backdrop = document.getElementById('backdrop');
+        if (!modal || !backdrop) return;
+        modal.classList.add('closing');
+        setTimeout(() => {
+          modal.classList.remove('active', 'closing');
+          backdrop.classList.remove('active');
+          document.querySelector('meta[name="viewport"]').setAttribute('content', 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no');
+        }, 300);
+      }
 
-      // Кнопка "Добавить задачу"
       const addTaskBtn = document.getElementById('addTaskBtn');
       if (addTaskBtn) {
         addTaskBtn.addEventListener('click', function() {
@@ -907,19 +869,16 @@ function closeModal() {
         });
       }
 
-      // Закрытие модального окна по кнопке "X"
       const closeModalBtn = document.getElementById('closeModalBtn');
       if (closeModalBtn) {
         closeModalBtn.addEventListener('click', closeModal);
       }
 
-      // Закрытие модального окна по клику на фон
       const backdrop = document.getElementById('backdrop');
       if (backdrop) {
         backdrop.addEventListener('click', closeModal);
       }
 
-      // Обновление заголовка задачи в модальном окне при вводе
       const modalTaskInput = document.getElementById('modalTaskInput');
       if (modalTaskInput) {
         modalTaskInput.addEventListener('input', function() {
@@ -927,28 +886,29 @@ function closeModal() {
         });
       }
 
-      // Обработчик для кнопки "Выполнить"/"Вернуть"
       const modalCompleteBtn = document.getElementById('modalCompleteBtn');
       if (modalCompleteBtn) {
         modalCompleteBtn.addEventListener('click', async function() {
-          if (!currentTaskItem) return; // Если это новая задача, кнопка не активна
+          if (!currentTaskItem) return;
 
           const taskId = currentTaskItem.dataset.id;
           const isCompleted = currentTaskItem.dataset.completed === "true";
           const newCompletedStatus = !isCompleted;
 
-          // Обновляем статус в DOM
           currentTaskItem.dataset.completed = newCompletedStatus;
           currentTaskItem.classList.toggle('completed');
           modalCompleteBtn.textContent = newCompletedStatus ? "Вернуть" : "Выполнить";
 
           try {
-            const response = await fetch(`https://task-manager-tj38.onrender.com/tasks/${taskId}?user_id=${user_id}`, {
+            const response = await fetch(`${BACKEND_URL}/tasks/${taskId}?user_id=${user_id}`, {
               method: 'PATCH',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({ completed: newCompletedStatus })
             });
-            if (!response.ok) throw new Error(`Ошибка ${response.status}`);
+            if (!response.ok) {
+              const errorText = await response.text();
+              throw new Error(`HTTP ошибка ${response.status}: ${errorText}`);
+            }
             const updatedTask = await response.json();
             const taskIndex = visibleTasks.findIndex(t => t.id === parseInt(taskId));
             if (taskIndex !== -1) {
@@ -958,7 +918,6 @@ function closeModal() {
           } catch (error) {
             console.error('Ошибка при обновлении статуса задачи:', error);
             alert(`Не удалось обновить статус задачи: ${error.message}`);
-            // Откат изменений в случае ошибки
             currentTaskItem.dataset.completed = isCompleted;
             currentTaskItem.classList.toggle('completed');
             modalCompleteBtn.textContent = isCompleted ? "Вернуть" : "Выполнить";
@@ -966,57 +925,60 @@ function closeModal() {
         });
       }
 
-      // Обработка сохранения задачи
       const modalSubmitBtn = document.getElementById('modalSubmitBtn');
       if (modalSubmitBtn) {
-modalSubmitBtn.addEventListener('click', async function() {
-  const titleInput = document.getElementById('modalTaskInput');
-  const dateInput = document.getElementById('modalTaskDate');
-  if (!titleInput.value.trim()) {
-    titleInput.style.borderColor = '#BD0935';
-    titleInput.focus();
-    return;
-  }
-  if (new Date(dateInput.value) < new Date().setHours(0,0,0,0)) {
-    dateInput.style.borderColor = '#BD0935';
-    return;
-  }
+        modalSubmitBtn.addEventListener('click', async function() {
+          const titleInput = document.getElementById('modalTaskInput');
+          const dateInput = document.getElementById('modalTaskDate');
+          if (!titleInput.value.trim()) {
+            titleInput.style.borderColor = '#BD0935';
+            titleInput.focus();
+            return;
+          }
+          if (new Date(dateInput.value) < new Date().setHours(0,0,0,0)) {
+            dateInput.style.borderColor = '#BD0935';
+            return;
+          }
 
-  const title = titleInput.value.trim();
-  const description = document.getElementById('modalTaskDesc').value;
-  const date = dateInput.value;
-  const time = document.getElementById('modalTaskTime').value;
-  const deadline = date && time ? `${date}T${time}:00Z` : date ? `${date}T00:00:00Z` : null;
-  const priority = document.getElementById('modalTaskPriority').value;
-  const reminder = document.getElementById('modalTaskReminder').checked;
+          const title = titleInput.value.trim();
+          const description = document.getElementById('modalTaskDesc').value;
+          const date = dateInput.value;
+          const time = document.getElementById('modalTaskTime').value;
+          const deadline = date && time ? `${date}T${time}:00Z` : date ? `${date}T00:00:00Z` : null;
+          const priority = document.getElementById('modalTaskPriority').value;
+          const reminder = document.getElementById('modalTaskReminder').checked;
 
-  if (currentTaskItem) {
-    const taskId = currentTaskItem.dataset.id;
-    try {
-      const response = await fetch(`https://task-manager-tj38.onrender.com/tasks/${taskId}?user_id=${user_id}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          title,
-          description,
-          deadline,
-          priority,
-          reminder,
-          completed: currentTaskItem.dataset.completed === "true"
-        })
-      });
-      if (!response.ok) throw new Error(`Ошибка ${response.status}`);
-      const updatedTask = await response.json();
-      const taskIndex = visibleTasks.findIndex(t => t.id === parseInt(taskId));
-      if (taskIndex !== -1) visibleTasks[taskIndex] = updatedTask;
-      renderTasks();
-    } catch (error) {
-      console.error('Ошибка при обновлении задачи:', error);
-      alert(`Не удалось обновить задачу: ${error.message}`);
-    }
-  } else {
+          if (currentTaskItem) {
+            const taskId = currentTaskItem.dataset.id;
             try {
-              const response = await fetch(`https://task-manager-tj38.onrender.com/tasks?user_id=${user_id}`, {
+              const response = await fetch(`${BACKEND_URL}/tasks/${taskId}?user_id=${user_id}`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  title,
+                  description,
+                  deadline,
+                  priority,
+                  reminder,
+                  completed: currentTaskItem.dataset.completed === "true"
+                })
+              });
+              if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(`HTTP ошибка ${response.status}: ${errorText}`);
+              }
+              const updatedTask = await response.json();
+              const taskIndex = visibleTasks.findIndex(t => t.id === parseInt(taskId));
+              if (taskIndex !== -1) visibleTasks[taskIndex] = updatedTask;
+              renderTasks();
+            } catch (error) {
+              console.error('Ошибка при обновлении задачи:', error);
+              alert(`Не удалось обновить задачу: ${error.message}`);
+            }
+          } else {
+            try {
+              console.log('Отправка запроса на создание задачи:', { title, description, deadline, priority, reminder });
+              const response = await fetch(`${BACKEND_URL}/tasks?user_id=${user_id}`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -1028,20 +990,26 @@ modalSubmitBtn.addEventListener('click', async function() {
                   completed: false
                 })
               });
-              if (!response.ok) throw new Error(`Ошибка ${response.status}`);
+              if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(`HTTP ошибка ${response.status}: ${errorText}`);
+              }
               const newTask = await response.json();
               visibleTasks.push(newTask);
               renderTasks();
             } catch (error) {
               console.error('Ошибка при создании задачи:', error);
-              alert(`Не удалось создать задачу: ${error.message}`);
+              let errorMessage = error.message;
+              if (error.message.includes("Failed to fetch")) {
+                errorMessage = "Не удалось связаться с сервером. Проверьте интернет или состояние сервера.";
+              }
+              alert(`Не удалось создать задачу: ${errorMessage}`);
             }
           }
           closeModal();
         });
       }
 
-      // Настройка MainButton
       const tg = Telegram.WebApp;
       const mainButton = tg.MainButton;
       mainButton.setText('Добавить задачу');
@@ -1052,8 +1020,6 @@ modalSubmitBtn.addEventListener('click', async function() {
       });
       mainButton.show();
 
-
-      // Создание элемента задачи
       function createTaskElement(task) {
         const taskItem = document.createElement('div');
         taskItem.className = 'task-item';
@@ -1072,7 +1038,6 @@ modalSubmitBtn.addEventListener('click', async function() {
         checkbox.checked = task.completed || false;
         if (task.completed) taskItem.classList.add('completed');
 
-        // Обработчик чекбокса для изменения статуса completed
         checkbox.addEventListener('click', async function(event) {
           event.stopPropagation();
           const isCompleted = checkbox.checked;
@@ -1081,12 +1046,15 @@ modalSubmitBtn.addEventListener('click', async function() {
 
           try {
             const taskId = taskItem.dataset.id;
-            const response = await fetch(`https://task-manager-tj38.onrender.com/tasks/${taskId}?user_id=${user_id}`, {
+            const response = await fetch(`${BACKEND_URL}/tasks/${taskId}?user_id=${user_id}`, {
               method: 'PATCH',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({ completed: isCompleted })
             });
-            if (!response.ok) throw new Error(`Ошибка ${response.status}`);
+            if (!response.ok) {
+              const errorText = await response.text();
+              throw new Error(`HTTP ошибка ${response.status}: ${errorText}`);
+            }
             const updatedTask = await response.json();
             const taskIndex = visibleTasks.findIndex(t => t.id === parseInt(taskId));
             if (taskIndex !== -1) visibleTasks[taskIndex].completed = updatedTask.completed;
@@ -1120,7 +1088,6 @@ modalSubmitBtn.addEventListener('click', async function() {
         else priorityElem.classList.add('priority-low');
         priorityElem.textContent = task.priority === 'High' ? 'Высокий' : task.priority === 'Medium' ? 'Средний' : 'Низкий';
 
-        // Кнопка удаления задачи
         const deleteBtn = document.createElement('button');
         deleteBtn.className = 'delete-btn';
         deleteBtn.textContent = 'Удалить';
@@ -1128,10 +1095,13 @@ modalSubmitBtn.addEventListener('click', async function() {
           event.stopPropagation();
           const taskId = task.id;
           try {
-            const response = await fetch(`https://task-manager-tj38.onrender.com/tasks/${taskId}?user_id=${user_id}`, {
+            const response = await fetch(`${BACKEND_URL}/tasks/${taskId}?user_id=${user_id}`, {
               method: 'DELETE',
             });
-            if (!response.ok) throw new Error(`Ошибка ${response.status}`);
+            if (!response.ok) {
+              const errorText = await response.text();
+              throw new Error(`HTTP ошибка ${response.status}: ${errorText}`);
+            }
             const index = visibleTasks.findIndex(t => t.id === taskId);
             if (index !== -1) visibleTasks.splice(index, 1);
             renderTasks();
@@ -1146,7 +1116,6 @@ modalSubmitBtn.addEventListener('click', async function() {
         taskItem.appendChild(priorityElem);
         taskItem.appendChild(deleteBtn);
 
-        // Открытие модального окна при клике на задачу
         taskItem.addEventListener('click', function() {
           openModal(taskItem);
         });
@@ -1154,40 +1123,50 @@ modalSubmitBtn.addEventListener('click', async function() {
         return taskItem;
       }
 
-      // Рендеринг списка задач
       function renderTasks() {
         if (!taskList) return;
-        console.log('Рендерим задачи:', visibleTasks); // Проверка
         taskList.innerHTML = '';
-        visibleTasks.forEach(task => {
-          taskList.appendChild(createTaskElement(task));
-        });
+        if (visibleTasks.length === 0) {
+          const noTasksMessage = document.createElement('div');
+          noTasksMessage.className = 'loading';
+          noTasksMessage.textContent = 'Нет задач';
+          taskList.appendChild(noTasksMessage);
+        } else {
+          visibleTasks.forEach(task => {
+            taskList.appendChild(createTaskElement(task));
+          });
+        }
       }
 
-      // Загрузка задач с сервера
-async function loadTasks() {
-    const loadingIndicator = document.getElementById('loadingIndicator');
-    loadingIndicator.style.display = 'block'; // Показываем индикатор
-    try {
-        const selectedDate = formatDate(currentSelectedDate);
-        const response = await fetch(`https://task-manager-tj38.onrender.com/tasks?user_id=${user_id}&date=${selectedDate}`, {
+      async function loadTasks() {
+        const loadingIndicator = document.getElementById('loadingIndicator');
+        if (!loadingIndicator) return;
+        loadingIndicator.style.display = 'block';
+        try {
+          const selectedDate = formatDate(currentSelectedDate);
+          console.log(`Загрузка задач для user_id=${user_id} и date=${selectedDate}`);
+          const response = await fetch(`${BACKEND_URL}/tasks?user_id=${user_id}&date=${selectedDate}`, {
             method: 'GET',
             headers: { 'Content-Type': 'application/json' },
-        });
-        if (!response.ok) throw new Error(`Ошибка ${response.status}`);
-        const tasks = await response.json();
-        visibleTasks.length = 0; // Очистка перед загрузкой
-        tasks.forEach(task => visibleTasks.push(task));
-        renderTasks();
-    } catch (error) {
-        console.error('Ошибка при загрузке задач:', error);
-        alert(`Не удалось загрузить задачи: ${error.message}`);
-    } finally {
-        loadingIndicator.style.display = 'none'; // Скрываем индикатор
-    }
-}
+          });
+          if (!response.ok) {
+            const errorText = await response.text();
+            throw new Error(`HTTP ошибка ${response.status}: ${errorText}`);
+          }
+          const tasks = await response.json();
+          visibleTasks.length = 0;
+          tasks.forEach(task => visibleTasks.push(task));
+          renderTasks();
+        } catch (error) {
+          console.error('Ошибка при загрузке задач:', error);
+          alert(`Не удалось загрузить задачи: ${error.message}`);
+          taskList.innerHTML = '<div class="loading">Ошибка загрузки задач</div>';
+        } finally {
+          loadingIndicator.style.display = 'none';
+        }
+      }
 
-      // Первоначальная загрузка задач
+      updateCurrentDayLabel();
       loadTasks();
     });
   </script>
