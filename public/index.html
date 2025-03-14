@@ -511,60 +511,96 @@
       --tg-theme-text-color: #FFFFFF;
       --tg-theme-secondary-bg-color: #1A1A1A;
     }
-    body[data-theme="light"] {
-      --tg-theme-bg-color: #FFFFFF;
-      --tg-theme-text-color: #000000;
-      --tg-theme-secondary-bg-color: #F5F5F5;
-    }
-    body[data-theme="light"] .container,
-    body[data-theme="light"] .header,
-    body[data-theme="light"] .date-container,
-    body[data-theme="light"] .tabs,
-    body[data-theme="light"] .task-list {
-      background: var(--tg-theme-bg-color, #FFFFFF);
-      color: var(--tg-theme-text-color, #000000);
-    }
-    body[data-theme="light"] .header {
-      border-bottom: 1px solid #E0E0E0;
-    }
-    body[data-theme="light"] .user-info .name,
-    body[data-theme="light"] .user-info .username,
-    body[data-theme="light"] .header .title {
-      color: var(--tg-theme-text-color, #000000);
-    }
-    body[data-theme="light"] .date-select,
-    body[data-theme="light"] .day-select {
-      border: 1px solid #E0E0E0;
-      color: #666666;
-    }
-    body[data-theme="light"] .date-select .icon-container svg,
-    body[data-theme="light"] .day-select .icon-container svg {
-      fill: #666666;
-    }
-    body[data-theme="light"] .tabs {
-      border-bottom: 1px solid #E0E0E0;
-    }
-    body[data-theme="light"] .tab {
-      color: #999999;
-    }
-    body[data-theme="light"] .tab.active {
-      color: #FF5722;
-      border-bottom: 2px solid #FF5722;
-    }
-    body[data-theme="light"] .task-item {
-      background: var(--tg-theme-secondary-bg-color, #F5F5F5);
-      border-bottom: 1px solid #E0E0E0;
-    }
-    body[data-theme="light"] .task-item .task-title {
-      color: var(--tg-theme-text-color, #000000);
-    }
-    body[data-theme="light"] .task-form {
-      background: #FFFFFF;
-      border: 1px solid #E0E0E0;
-    }
-    body[data-theme="light"] .task-form .header-form .title {
-      color: var(--tg-theme-text-color, #000000);
-    }
+/* =========================================
+   Переопределения для светлой темы
+   ========================================= */
+body[data-theme="light"] {
+  --tg-theme-bg-color: #FFFFFF;
+  --tg-theme-text-color: #000000;
+  --tg-theme-secondary-bg-color: #F5F5F5;
+}
+
+/* Общий фон контейнера, хедера, списка задач и т.д. */
+body[data-theme="light"] .container,
+body[data-theme="light"] .header,
+body[data-theme="light"] .date-container,
+body[data-theme="light"] .tabs,
+body[data-theme="light"] .task-list {
+  background: var(--tg-theme-bg-color, #FFFFFF);
+  color: var(--tg-theme-text-color, #000000);
+}
+
+/* Сама шапка: белый фон, нижняя светлая граница */
+body[data-theme="light"] .header {
+  border-bottom: 1px solid #E0E0E0;
+}
+
+/* Имя пользователя, заголовок и т.п. – делаем чёрным */
+body[data-theme="light"] .user-info .name,
+body[data-theme="light"] .user-info .username,
+body[data-theme="light"] .header .title {
+  color: var(--tg-theme-text-color, #000000);
+}
+
+/* Селекты дат */
+body[data-theme="light"] .date-select,
+body[data-theme="light"] .day-select {
+  border: 1px solid #E0E0E0;
+  color: #666666;
+}
+body[data-theme="light"] .date-select .icon-container svg,
+body[data-theme="light"] .day-select .icon-container svg {
+  fill: #666666;
+}
+
+/* Табы в светлой теме */
+body[data-theme="light"] .tabs {
+  border-bottom: 1px solid #E0E0E0;
+}
+body[data-theme="light"] .tab {
+  color: #999999;
+}
+body[data-theme="light"] .tab.active {
+  color: #FF5722;
+  border-bottom: 2px solid #FF5722;
+}
+
+/* Сами задачи: белый фон, светлая граница */
+body[data-theme="light"] .task-item {
+  background: #FFFFFF; /* Белый фон у задач */
+  border-bottom: 1px solid #E0E0E0;
+}
+/* При наведении делаем лёгкий серый фон */
+body[data-theme="light"] .task-item:hover {
+  transform: none;
+  background: #F5F5F5;
+}
+
+/* Текст задачи — чёрный, дата — чуть серее и помельче */
+body[data-theme="light"] .task-title {
+  color: #000000;
+}
+body[data-theme="light"] .task-date {
+  font-size: 14px;
+  color: #999999;
+}
+
+/* Модальное окно в светлой теме */
+body[data-theme="light"] .task-form {
+  background: #FFFFFF;
+  border: 1px solid #E0E0E0;
+}
+body[data-theme="light"] .task-form .header-form .title {
+  color: #000000;
+}
+body[data-theme="light"] .task-item {
+  background: #FFFFFF; /* чистый белый фон у задач */
+  border-bottom: 1px solid #E0E0E0; /* светлая граница */
+}
+body[data-theme="light"] .task-item:hover {
+  transform: none; /* убираем сдвиг при наведении */
+  background: #F5F5F5; /* лёгкий серый при hover */
+}
   </style>
 </head>
 <body>
@@ -608,7 +644,7 @@
       <div class="loading" id="loadingIndicator">Загрузка...</div>
     </div>
     <div class="add-button">
-      <button id="addTaskBtn">Добавить задачу</button>
+      <button id="addTaskBtn">Создать задачу</button>
     </div>
     <div class="backdrop" id="backdrop"></div>
     <div class="task-form" id="taskForm">
@@ -1077,9 +1113,16 @@
         titleElem.textContent = task.title;
         const dateElem = document.createElement('div');
         dateElem.className = 'task-date';
-        dateElem.textContent = task.deadline 
-          ? new Date(task.deadline).toLocaleString('ru-RU', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) 
-          : 'Без даты';
+dateElem.textContent = task.deadline
+  ? new Date(task.deadline).toLocaleString('ru-RU', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false
+    })
+  : 'Без даты';
         taskInfo.appendChild(titleElem);
         taskInfo.appendChild(dateElem);
 
