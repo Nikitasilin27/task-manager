@@ -3,7 +3,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from sqlalchemy import and_
 from models import Task
-from datetime import datetime, timedelta
+from datetime import datetime, date, timedelta
 
 async def get_tasks(db: AsyncSession, user_id: int, date: Optional[date] = None):
     query = select(Task).where(Task.user_id == user_id)
