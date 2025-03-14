@@ -9,7 +9,7 @@ class Task(Base):
     id = Column(Integer, primary_key=True, index=True)
     title = Column(String, nullable=False)
     description = Column(String, nullable=True)
-    deadline = Column(DateTime, nullable=True, index=True)
+    deadline = Column(DateTime(timezone=True), nullable=True, index=True)  # Изменено на timezone=True
     priority = Column(String, nullable=False, default="Medium")
     reminder = Column(Boolean, default=False)
     completed = Column(Boolean, default=False)
