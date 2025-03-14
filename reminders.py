@@ -37,18 +37,26 @@ async def check_reminders():
     logger.info("Проверка напоминаний...")
     async for db in get_db():
         try:
-            db_users = await get_active_users(db)  # Пользователи с задачами
-            tg_users = await get_telegram_users()  # Пользователи из Telegram
-            users = list(set(db_users + tg_users))  # Уникальный список
+            db_users = await get_active_users(db)  # Получаем список пользователей с задачами
+            tg_users = await get_telegram_users()    # Получаем пользователей из Telegram
+            users = list(set(db_users + tg_users))     # Формируем уникальный список
             for user_id in users:
                 tasks = await get_tasks(db, user_id)
                 for task in tasks:
+                    # Если задача имеет включённое напоминание, задан дедлайн и не завершена
                     if task.reminder and task.deadline and not task.completed:
                         deadline = task.deadline.astimezone(timezone.utc)
                         now = datetime.now(timezone.utc)
+                        # Если осталось меньше или равно 1 часу до дедлайна
                         if (deadline - now).total_seconds() <= 3600:
                             logger.info(f"Напоминание для задачи {task.title} (user_id={user_id})")
-                            await bot.send_message(chat_id=user_id, text=f"Напоминание: {task.title} (дедлайн: {deadline})")
+                            await bot.send_message(
+                                chat_id=user_id,
+                                text=f"Напоминание: {task.title} (дедлайн: {deadline.strftime('%Y-%m-%d %H:%M:%S UTC')})"
+                            )
+                            # Сбрасываем флаг напоминания, чтобы не отправлять повторно
+                            task.reminder = False
+                            await db.commit()  # Сохраняем изменения в базе данных
         except Exception as e:
             logger.error(f"Ошибка при проверке напоминаний: {str(e)}")
         finally:
