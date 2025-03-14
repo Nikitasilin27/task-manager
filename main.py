@@ -13,7 +13,6 @@ from contextlib import asynccontextmanager
 from reminders import start_scheduler
 import logging
 
-# Настройка логирования
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
@@ -60,7 +59,7 @@ async def lifespan(app: FastAPI):
     except Exception as e:
         logger.error(f"Ошибка при создании таблиц базы данных: {str(e)}")
         raise
-    start_scheduler()
+    start_scheduler()  # Запускаем планировщик
     yield
 
 app = FastAPI(lifespan=lifespan)
