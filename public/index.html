@@ -1145,7 +1145,7 @@ async function loadTasks() {
     try {
         const selectedDate = formatDate(currentSelectedDate);
         console.log(`Загрузка задач для user_id=${user_id} и date=${selectedDate}`);
-        const response = await fetch(`${BACKEND_URL}/tasks?user_id=${user_id}&date=${selectedDate}`, {
+        const response = await fetch(`${https://task-manager-tj38.onrender.com}/tasks?user_id=${user_id}&date=${selectedDate}`, {
             method: 'GET',
             headers: { 'Content-Type': 'application/json' },
         });
