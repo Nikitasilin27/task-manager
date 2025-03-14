@@ -29,7 +29,7 @@ class Priority(StrEnum):
 class TaskOut(BaseModel):
     id: int
     title: str
-    description: Optional[str] = None  # Используем Optional для поддержки None
+    description: Optional[str] = None
     deadline: Optional[datetime] = None
     priority: str
     reminder: bool
@@ -37,9 +37,7 @@ class TaskOut(BaseModel):
     created_at: datetime
 
     class Config:
-        orm_mode = True
-
-app = FastAPI()
+        from_attributes = True
 
 # Настройка CORS
 app.add_middleware(
@@ -50,40 +48,16 @@ app.add_middleware(
     allow_headers=["Content-Type", "Authorization"],
 )
 
-@app.on_event("startup")
-async def startup():
-    try:
-        print("Starting application and creating database tables...")
-        async with engine.begin() as conn:
-            await conn.run_sync(Base.metadata.drop_all)  # Удаляем старую таблицу
-            await conn.run_sync(Base.metadata.create_all)  # Создаём новую с user_id
-        print("Database tables created successfully.")
-        async for session in get_db():
-            tasks = await get_tasks(session, user_id=1)
-            print(f"Found {len(tasks)} existing tasks.")
-            if not tasks:
-                print("Initializing default tasks...")
-                await create_task(
-                    session,
-                    user_id=1,
-                    title="Купить молоко",
-                    deadline="2025-03-11T12:00:00",
-                    priority="High",
-                    reminder=True,
-                    completed=False
-                )
-                await create_task(
-                    session,
-                    user_id=1,
-                    title="Позвонить другу",
-                    deadline="2025-03-12T14:00:00",
-                    priority="Medium",
-                    reminder=False,
-                    completed=False
-                )
-                print("Default tasks created.")
-    except Exception as e:
-        print(f"Startup error: {str(e)}")
+from contextlib import asynccontextmanager
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.drop_all)
+        await conn.run_sync(Base.metadata.create_all)
+    yield
+
+app = FastAPI(lifespan=lifespan)
 
 @app.get("/")
 async def root():
