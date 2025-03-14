@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Optional, List
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from sqlalchemy import and_, func
@@ -9,11 +9,19 @@ import logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+async def get_active_users(db: AsyncSession) -> List[int]:
+    try:
+        query = select(Task.user_id).distinct().where(Task.reminder == True)
+        result = await db.execute(query)
+        return [row[0] for row in result.fetchall() if row[0] is not None]
+    except Exception as e:
+        logger.error(f"Ошибка при получении списка пользователей: {str(e)}")
+        raise
+
 async def get_tasks(db: AsyncSession, user_id: int, date: Optional[date] = None):
     try:
         query = select(Task).where(Task.user_id == user_id)
         if date:
-            # Используем func.date_trunc для обрезки времени до начала дня
             start_of_day = datetime.combine(date, datetime.min.time()).replace(tzinfo=timezone.utc)
             next_day = start_of_day + timedelta(days=1)
             query = query.where(
@@ -26,8 +34,6 @@ async def get_tasks(db: AsyncSession, user_id: int, date: Optional[date] = None)
     except Exception as e:
         logger.error(f"Ошибка при получении задач для user_id={user_id}: {str(e)}")
         raise
-
-# Остальные функции (create_task, delete_task, update_task) остаются без изменений
 
 async def create_task(db: AsyncSession, user_id: int, title: str, description: Optional[str] = None, 
                      deadline: Optional[str] = None, priority: str = "Medium", reminder: bool = False, 
