@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 scheduler = AsyncIOScheduler()
 
 # Получаем токен из переменной окружения
-token = os.environ.get("7822793225:AAFug__PTGhCEmMkPBii0I75KbsNHBuGXd8")
+token = os.environ.get("TELEGRAM_BOT_TOKEN")
 if not token:
     logger.error("TELEGRAM_BOT_TOKEN не задан в переменных окружения")
     raise ValueError("TELEGRAM_BOT_TOKEN не задан в переменных окружения")
