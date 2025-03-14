@@ -1,4 +1,5 @@
 from telegram import Bot
+from telegram.error import InvalidToken
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from datetime import datetime, timezone
 import logging
@@ -10,11 +11,27 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 scheduler = AsyncIOScheduler()
-bot = Bot(os.environ.get("7822793225:AAFug__PTGhCEmMkPBii0I75KbsNHBuGXd8"))
+
+# Получаем токен из переменной окружения
+token = os.environ.get("7822793225:AAFug__PTGhCEmMkPBii0I75KbsNHBuGXd8")
+if not token:
+    logger.error("TELEGRAM_BOT_TOKEN не задан в переменных окружения")
+    raise ValueError("TELEGRAM_BOT_TOKEN не задан в переменных окружения")
+
+try:
+    bot = Bot(token)
+    logger.info("Telegram Bot успешно инициализирован")
+except InvalidToken as e:
+    logger.error(f"Недействительный токен Telegram: {e}")
+    raise
 
 async def get_telegram_users():
-    updates = await bot.get_updates(offset=-1, timeout=10)
-    return [update.message.chat.id for update in updates if update.message]
+    try:
+        updates = await bot.get_updates(offset=-1, timeout=10)
+        return [update.message.chat.id for update in updates if update.message]
+    except Exception as e:
+        logger.error(f"Ошибка при получении пользователей из Telegram: {str(e)}")
+        return []
 
 async def check_reminders():
     logger.info("Проверка напоминаний...")
