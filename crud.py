@@ -4,11 +4,10 @@ from sqlalchemy import and_
 from models import Task
 from datetime import datetime, timedelta
 
-async def get_tasks(db: AsyncSession, user_id: int, date: str = None):
+async def get_tasks(db: AsyncSession, user_id: int, date: Optional[date] = None):
     query = select(Task).where(Task.user_id == user_id)
     if date:
-        filter_date = datetime.strptime(date, "%Y-%m-%d").date()
-        lower_bound = datetime.combine(filter_date, datetime.min.time())
+        lower_bound = datetime.combine(date, datetime.min.time())
         upper_bound = lower_bound + timedelta(days=1)
         query = query.where(
             and_(
@@ -19,9 +18,7 @@ async def get_tasks(db: AsyncSession, user_id: int, date: str = None):
     result = await db.execute(query)
     return result.scalars().all()
 
-async def create_task(db: AsyncSession, user_id: int, title: str, description: str = None, deadline: str = None, priority: str = "Medium", reminder: bool = False, completed: bool = False):
-    if priority not in ["High", "Medium", "Low"]:
-        raise ValueError("Priority must be 'High', 'Medium', or 'Low'")
+async def create_task(db: AsyncSession, user_id: int, title: str, description: Optional[str] = None, deadline: Optional[str] = None, priority: str = "Medium", reminder: bool = False, completed: bool = False):
     deadline_dt = datetime.fromisoformat(deadline) if deadline else None
     db_task = Task(
         title=title,
