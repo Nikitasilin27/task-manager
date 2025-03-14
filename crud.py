@@ -1,7 +1,7 @@
 from typing import Optional
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
-from sqlalchemy import and_
+from sqlalchemy import and_, func
 from models import Task
 from datetime import datetime, date, timedelta, timezone
 import logging
@@ -13,12 +13,12 @@ async def get_tasks(db: AsyncSession, user_id: int, date: Optional[date] = None)
     try:
         query = select(Task).where(Task.user_id == user_id)
         if date:
-            lower_bound = datetime.combine(date, datetime.min.time()).replace(tzinfo=timezone.utc)
-            upper_bound = lower_bound + timedelta(days=1)
+            # Используем func.date_trunc для обрезки времени до начала дня
+            start_of_day = datetime.combine(date, datetime.min.time()).replace(tzinfo=timezone.utc)
+            next_day = start_of_day + timedelta(days=1)
             query = query.where(
                 and_(
-                    Task.deadline >= lower_bound,
-                    Task.deadline < upper_bound
+                    func.date_trunc('day', Task.deadline) == start_of_day
                 )
             )
         result = await db.execute(query)
@@ -26,6 +26,8 @@ async def get_tasks(db: AsyncSession, user_id: int, date: Optional[date] = None)
     except Exception as e:
         logger.error(f"Ошибка при получении задач для user_id={user_id}: {str(e)}")
         raise
+
+# Остальные функции (create_task, delete_task, update_task) остаются без изменений
 
 async def create_task(db: AsyncSession, user_id: int, title: str, description: Optional[str] = None, 
                      deadline: Optional[str] = None, priority: str = "Medium", reminder: bool = False, 
