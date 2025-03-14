@@ -986,7 +986,7 @@ modalSubmitBtn.addEventListener('click', async function() {
   const description = document.getElementById('modalTaskDesc').value;
   const date = dateInput.value;
   const time = document.getElementById('modalTaskTime').value;
-  const deadline = date && time ? `${date}T${time}:00` : date ? `${date}T00:00:00` : null;
+  const deadline = date && time ? `${date}T${time}:00Z` : date ? `${date}T00:00:00Z` : null;
   const priority = document.getElementById('modalTaskPriority').value;
   const reminder = document.getElementById('modalTaskReminder').checked;
 
