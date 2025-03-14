@@ -3,10 +3,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from sqlalchemy import and_
 from models import Task
-from datetime import datetime, date, timedelta, timezone  # Добавлен импорт timezone
+from datetime import datetime, date, timedelta, timezone
 import logging
 
-# Настройка логирования
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
