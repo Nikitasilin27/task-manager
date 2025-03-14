@@ -2,7 +2,7 @@
 <html lang="ru">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Task Manager Mini App</title>
   <style>
     /* Стили для кнопки удаления */
@@ -164,8 +164,10 @@
       border-bottom: 2px solid #FF5722;
     }
     .task-list {
-      padding: 16px;
+      padding: 16px 16px 80px 16px; /* Отступ снизу для кнопки */
       background: var(--tg-theme-bg-color, #121212);
+      overflow-y: auto; /* Включаем прокрутку */
+      max-height: calc(100vh - 220px); /* Ограничиваем высоту */
     }
     .task-item {
       display: flex;
@@ -491,6 +493,12 @@
     .task-form .submit-button:hover {
       background-color: #3A3A3C;
     }
+    .task-list .loading {
+      text-align: center;
+      padding: 16px;
+      color: #757575;
+      font-size: 16px;
+    }
     @media screen and (max-width: 401px) {
       .container {
         max-width: 315px;
@@ -498,6 +506,80 @@
       .task-form {
         width: 280px;
       }
+/* По умолчанию тёмная тема */
+:root {
+  --tg-theme-bg-color: #121212;
+  --tg-theme-text-color: #FFFFFF;
+  --tg-theme-secondary-bg-color: #1A1A1A;
+}
+
+/* Светлая тема */
+body[data-theme="light"] {
+  --tg-theme-bg-color: #FFFFFF;
+  --tg-theme-text-color: #000000;
+  --tg-theme-secondary-bg-color: #F5F5F5;
+}
+
+body[data-theme="light"] .container,
+body[data-theme="light"] .header,
+body[data-theme="light"] .date-container,
+body[data-theme="light"] .tabs,
+body[data-theme="light"] .task-list {
+  background: var(--tg-theme-bg-color, #FFFFFF);
+  color: var(--tg-theme-text-color, #000000);
+}
+
+body[data-theme="light"] .header {
+  border-bottom: 1px solid #E0E0E0;
+}
+
+body[data-theme="light"] .user-info .name,
+body[data-theme="light"] .user-info .username,
+body[data-theme="light"] .header .title {
+  color: var(--tg-theme-text-color, #000000);
+}
+
+body[data-theme="light"] .date-select,
+body[data-theme="light"] .day-select {
+  border: 1px solid #E0E0E0;
+  color: #666666;
+}
+
+body[data-theme="light"] .date-select .icon-container svg,
+body[data-theme="light"] .day-select .icon-container svg {
+  fill: #666666;
+}
+
+body[data-theme="light"] .tabs {
+  border-bottom: 1px solid #E0E0E0;
+}
+
+body[data-theme="light"] .tab {
+  color: #999999;
+}
+
+body[data-theme="light"] .tab.active {
+  color: #FF5722;
+  border-bottom: 2px solid #FF5722;
+}
+
+body[data-theme="light"] .task-item {
+  background: var(--tg-theme-secondary-bg-color, #F5F5F5);
+  border-bottom: 1px solid #E0E0E0;
+}
+
+body[data-theme="light"] .task-item .task-title {
+  color: var(--tg-theme-text-color, #000000);
+}
+
+body[data-theme="light"] .task-form {
+  background: #FFFFFF;
+  border: 1px solid #E0E0E0;
+}
+
+body[data-theme="light"] .task-form .header-form .title {
+  color: var(--tg-theme-text-color, #000000);
+}
     }
   </style>
 </head>
@@ -543,7 +625,9 @@
     <!-- Вкладки с днями недели -->
     <div class="tabs" id="tabsContainer"></div>
     <!-- Список задач -->
-    <div class="task-list" id="taskList"></div>
+    <div class="task-list" id="taskList">
+      <div class="loading" id="loadingIndicator">Загрузка...</div>
+    </div>
     <!-- Кнопка добавления задачи -->
     <div class="add-button">
       <button id="addTaskBtn">Добавить задачу</button>
@@ -608,6 +692,9 @@
       let user_id;
       try {
         Telegram.WebApp.ready();
+        const theme = Telegram.WebApp.colorScheme; // 'light' или 'dark'
+        document.body.setAttribute('data-theme', theme);
+        console.log('Тема применена:', theme);
         const user = Telegram.WebApp.initDataUnsafe.user;
         if (user && user.id) {
           user_id = user.id; // Telegram ID пользователя для всех запросов к API
@@ -800,16 +887,17 @@
       }
 
       // Закрытие модального окна с анимацией
-      function closeModal() {
-        const modal = document.getElementById('taskForm');
-        const backdrop = document.getElementById('backdrop');
-        if (!modal || !backdrop) return;
-        modal.classList.add('closing');
-        setTimeout(() => {
-          modal.classList.remove('active', 'closing');
-          backdrop.classList.remove('active');
-        }, 300);
-      }
+function closeModal() {
+    const modal = document.getElementById('taskForm');
+    const backdrop = document.getElementById('backdrop');
+    if (!modal || !backdrop) return;
+    modal.classList.add('closing');
+    setTimeout(() => {
+        modal.classList.remove('active', 'closing');
+        backdrop.classList.remove('active');
+        document.querySelector('meta[name="viewport"]').setAttribute('content', 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no');
+    }, 300);
+}
 
       // Кнопка "Добавить задачу"
       const addTaskBtn = document.getElementById('addTaskBtn');
@@ -1069,6 +1157,7 @@ modalSubmitBtn.addEventListener('click', async function() {
       // Рендеринг списка задач
       function renderTasks() {
         if (!taskList) return;
+        console.log('Рендерим задачи:', visibleTasks); // Проверка
         taskList.innerHTML = '';
         visibleTasks.forEach(task => {
           taskList.appendChild(createTaskElement(task));
@@ -1076,23 +1165,27 @@ modalSubmitBtn.addEventListener('click', async function() {
       }
 
       // Загрузка задач с сервера
-      async function loadTasks() {
-        try {
-          const selectedDate = formatDate(currentSelectedDate);
-          const response = await fetch(`https://task-manager-tj38.onrender.com/tasks?user_id=${user_id}&date=${selectedDate}`, {
+async function loadTasks() {
+    const loadingIndicator = document.getElementById('loadingIndicator');
+    loadingIndicator.style.display = 'block'; // Показываем индикатор
+    try {
+        const selectedDate = formatDate(currentSelectedDate);
+        const response = await fetch(`https://task-manager-tj38.onrender.com/tasks?user_id=${user_id}&date=${selectedDate}`, {
             method: 'GET',
             headers: { 'Content-Type': 'application/json' },
-          });
-          if (!response.ok) throw new Error(`Ошибка ${response.status}`);
-          const tasks = await response.json();
-          visibleTasks.length = 0; // Очистка перед загрузкой
-          tasks.forEach(task => visibleTasks.push(task));
-          renderTasks();
-        } catch (error) {
-          console.error('Ошибка при загрузке задач:', error);
-          alert(`Не удалось загрузить задачи: ${error.message}`);
-        }
-      }
+        });
+        if (!response.ok) throw new Error(`Ошибка ${response.status}`);
+        const tasks = await response.json();
+        visibleTasks.length = 0; // Очистка перед загрузкой
+        tasks.forEach(task => visibleTasks.push(task));
+        renderTasks();
+    } catch (error) {
+        console.error('Ошибка при загрузке задач:', error);
+        alert(`Не удалось загрузить задачи: ${error.message}`);
+    } finally {
+        loadingIndicator.style.display = 'none'; // Скрываем индикатор
+    }
+}
 
       // Первоначальная загрузка задач
       loadTasks();
