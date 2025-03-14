@@ -7,17 +7,23 @@ from crud import get_tasks, create_task, delete_task, update_task
 from fastapi.encoders import jsonable_encoder
 from pydantic import BaseModel
 from typing import Optional
-from datetime import datetime
+from datetime import datetime, date
 from fastapi import Body
+from enum import StrEnum
 
 # Pydantic-модель для входящих данных при создании задачи
 class TaskCreate(BaseModel):
     title: str
-    description: str = None
-    deadline: str = None
-    priority: str = "Medium"
+    description: Optional[str] = None
+    deadline: Optional[str] = None
+    priority: Priority = Priority.MEDIUM
     reminder: bool = False
     completed: bool = False
+    
+class Priority(StrEnum):
+    HIGH = "High"
+    MEDIUM = "Medium"
+    LOW = "Low"
 
 # Pydantic-модель для вывода задачи
 class TaskOut(BaseModel):
@@ -84,45 +90,33 @@ async def root():
     return {"message": "Добро пожаловать в Task Manager! Используйте /tasks для списка задач."}
 
 @app.get("/tasks", response_model=list[TaskOut])
-async def read_tasks(user_id: int, date: str = None, db: AsyncSession = Depends(get_db)):
-    try:
-        print(f"Fetching tasks for user_id: {user_id}, date: {date}")
-        tasks = await get_tasks(db, user_id=user_id, date=date)
-        print(f"Tasks fetched: {len(tasks)}")
-        return jsonable_encoder(tasks)
-    except Exception as e:
-        print(f"Error in read_tasks: {str(e)}")
-        raise HTTPException(status_code=500, detail=f"Ошибка сервера: {str(e)}")
+async def read_tasks(user_id: int, date: Optional[date] = None, db: AsyncSession = Depends(get_db)):
+    tasks = await get_tasks(db, user_id=user_id, date=date)
+    return tasks
 
 @app.post("/tasks", response_model=TaskOut)
 async def create_new_task(task: TaskCreate, user_id: int, db: AsyncSession = Depends(get_db)):
-    try:
-        print(f"Creating task for user_id: {user_id}, title: {task.title}")
-        new_task = await create_task(
-            db,
-            user_id=user_id,
-            title=task.title,
-            description=task.description,
-            deadline=task.deadline,
-            priority=task.priority,
-            reminder=task.reminder,
-            completed=task.completed
-        )
-        print("Task created successfully.")
-        return jsonable_encoder(new_task)
+    new_task = await create_task(
+        db,
+        user_id=user_id,
+        title=task.title,
+        description=task.description,
+        deadline=task.deadline,
+        priority=task.priority,
+        reminder=task.reminder,
+        completed=task.completed
+    )
+    return new_task
     except Exception as e:
         print(f"Error in create_task: {str(e)}")
         raise HTTPException(status_code=400, detail=f"Ошибка при создании задачи: {str(e)}")
 
 @app.delete("/tasks/{task_id}")
 async def delete_task_endpoint(task_id: int, user_id: int, db: AsyncSession = Depends(get_db)):
-    try:
-        print(f"Deleting task with id: {task_id} for user_id: {user_id}")
-        task = await delete_task(db, user_id=user_id, task_id=task_id)
-        if not task:
-            raise HTTPException(status_code=404, detail="Задача не найдена или не принадлежит пользователю")
-        print("Task deleted successfully.")
-        return {"message": "Задача удалена"}
+    task = await delete_task(db, user_id=user_id, task_id=task_id)
+    if not task:
+        raise HTTPException(status_code=404, detail="Задача не найдена или не принадлежит пользователю")
+    return {"message": "Задача удалена"}
     except Exception as e:
         print(f"Error in delete_task: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Ошибка сервера: {str(e)}")
@@ -140,4 +134,4 @@ async def update_task_endpoint(task_id: int, task_update: TaskUpdate, user_id: i
     task = await update_task(db, user_id=user_id, task_id=task_id, **task_update.dict(exclude_unset=True))
     if not task:
         raise HTTPException(status_code=404, detail="Задача не найдена или не принадлежит пользователю")
-    return jsonable_encoder(task)
+    return task
