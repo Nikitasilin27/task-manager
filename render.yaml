@@ -1,0 +1,17 @@
+services:
+  - type: web
+    name: task-manager
+    env: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: python init_db.py && uvicorn main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: task-manager-db
+          property: connectionString
+      - key: TELEGRAM_BOT_TOKEN
+        value: 7822793225:AAFug__PTGhCEmMkPBii0I75KbsNHBuGXd8
+databases:
+  - name: task-manager-db
+    databaseName: task_manager
+    user: task_manager_user
