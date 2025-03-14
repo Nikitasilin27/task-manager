@@ -655,47 +655,49 @@
   </div>
 
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
-  <script>
-    document.addEventListener('DOMContentLoaded', function() {
-      console.log('DOM загружен, инициализация приложения...');
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    console.log('DOM загружен, инициализация приложения...');
 
-      const visibleTasks = [];
-      const taskList = document.getElementById('taskList');
-      const BACKEND_URL = 'https://task-manager-tj38.onrender.com'; // Убедитесь, что это правильный URL вашего сервера
+    const visibleTasks = [];
+    const taskList = document.getElementById('taskList');
+    const BACKEND_URL = 'https://task-manager-tj38.onrender.com'; // URL вашего сервера
 
-      let user_id;
-      try {
-        Telegram.WebApp.ready();
-        const theme = Telegram.WebApp.colorScheme;
-        document.body.setAttribute('data-theme', theme);
-        console.log('Тема применена:', theme);
-        const user = Telegram.WebApp.initDataUnsafe.user;
-        if (user && user.id) {
-          user_id = user.id;
-          const name = user.first_name + (user.last_name ? ' ' + user.last_name : '');
-          const username = user.username ? '@' + user.username : 'Нет имени пользователя';
-          const avatar = user.photo_url || 'https://via.placeholder.com/40';
-          document.querySelector('.name').textContent = name;
-          document.querySelector('.username').textContent = username;
-          document.querySelector('.avatar').style.backgroundImage = `url(${avatar})`;
-          document.querySelector('.avatar').style.backgroundSize = 'cover';
-          document.querySelector('.avatar').style.backgroundColor = 'transparent';
-          console.log('Telegram WebApp инициализирован с user_id:', user_id);
+    let user_id;
+    try {
+      Telegram.WebApp.ready();
+      // Получаем тему и приводим к нижнему регистру, чтобы соответствовать CSS
+      const theme = Telegram.WebApp.colorScheme;
+      document.body.setAttribute('data-theme', theme.toLowerCase());
+      console.log('Тема применена:', theme);
+      
+      const user = Telegram.WebApp.initDataUnsafe.user;
+      if (user && user.id) {
+        user_id = user.id;
+        const name = user.first_name + (user.last_name ? ' ' + user.last_name : '');
+        const username = user.username ? '@' + user.username : 'Нет имени пользователя';
+        const avatar = user.photo_url || 'https://via.placeholder.com/40';
+        document.querySelector('.name').textContent = name;
+        document.querySelector('.username').textContent = username;
+        document.querySelector('.avatar').style.backgroundImage = `url(${avatar})`;
+        document.querySelector('.avatar').style.backgroundSize = 'cover';
+        document.querySelector('.avatar').style.backgroundColor = 'transparent';
+        console.log('Telegram WebApp инициализирован с user_id:', user_id);
 
-          const themeParams = Telegram.WebApp.themeParams;
-          if (themeParams) {
-            document.documentElement.style.setProperty('--tg-theme-bg-color', themeParams.bg_color || '#121212');
-            document.documentElement.style.setProperty('--tg-theme-text-color', themeParams.text_color || '#FFFFFF');
-            document.documentElement.style.setProperty('--tg-theme-secondary-bg-color', themeParams.secondary_bg_color || '#1A1A1A');
-          }
-        } else {
-          throw new Error("Не удалось получить user_id из Telegram");
+        const themeParams = Telegram.WebApp.themeParams;
+        if (themeParams) {
+          document.documentElement.style.setProperty('--tg-theme-bg-color', themeParams.bg_color || '#121212');
+          document.documentElement.style.setProperty('--tg-theme-text-color', themeParams.text_color || '#FFFFFF');
+          document.documentElement.style.setProperty('--tg-theme-secondary-bg-color', themeParams.secondary_bg_color || '#1A1A1A');
         }
-      } catch (error) {
-        console.error('Ошибка инициализации Telegram WebApp:', error);
-        alert('Не удалось инициализировать Telegram WebApp. Откройте через Telegram.');
-        return;
+      } else {
+        throw new Error("Не удалось получить user_id из Telegram");
       }
+    } catch (error) {
+      console.error('Ошибка инициализации Telegram WebApp:', error);
+      alert('Не удалось инициализировать Telegram WebApp. Откройте через Telegram.');
+      return;
+    }
 
       function formatDate(date) {
         let d = new Date(date);
@@ -1139,42 +1141,43 @@
       }
 
 async function loadTasks() {
-    const loadingIndicator = document.getElementById('loadingIndicator');
-    if (!loadingIndicator) return;
-    loadingIndicator.style.display = 'block';
-    try {
+      const loadingIndicator = document.getElementById('loadingIndicator');
+      if (!loadingIndicator) return;
+      loadingIndicator.style.display = 'block';
+      try {
         const selectedDate = formatDate(currentSelectedDate);
         console.log(`Загрузка задач для user_id=${user_id} и date=${selectedDate}`);
-        const response = await fetch(`${https://task-manager-tj38.onrender.com}/tasks?user_id=${user_id}&date=${selectedDate}`, {
-            method: 'GET',
-            headers: { 'Content-Type': 'application/json' },
+        // Используем переменную BACKEND_URL правильно
+        const response = await fetch(`${BACKEND_URL}/tasks?user_id=${user_id}&date=${selectedDate}`, {
+          method: 'GET',
+          headers: { 'Content-Type': 'application/json' },
         });
         if (!response.ok) {
-            const errorText = await response.text();
-            throw new Error(`HTTP ошибка ${response.status}: ${errorText}`);
+          const errorText = await response.text();
+          throw new Error(`HTTP ошибка ${response.status}: ${errorText}`);
         }
         const tasks = await response.json();
         visibleTasks.length = 0;
         tasks.forEach(task => {
-            // Фильтруем задачи только для выбранного дня
-            const taskDate = task.deadline ? new Date(task.deadline).toISOString().split('T')[0] : null;
-            if (taskDate === selectedDate) {
-                visibleTasks.push(task);
-            }
+          // Фильтруем задачи только для выбранного дня
+          const taskDate = task.deadline ? new Date(task.deadline).toISOString().split('T')[0] : null;
+          if (taskDate === selectedDate) {
+            visibleTasks.push(task);
+          }
         });
         renderTasks();
-    } catch (error) {
+      } catch (error) {
         console.error('Ошибка при загрузке задач:', error);
         alert(`Не удалось загрузить задачи: ${error.message}`);
         taskList.innerHTML = '<div class="loading">Ошибка загрузки задач</div>';
-    } finally {
+      } finally {
         loadingIndicator.style.display = 'none';
+      }
     }
-}
 
-      updateCurrentDayLabel();
-      loadTasks();
-    });
-  </script>
+ updateCurrentDayLabel();
+    loadTasks();
+  });
+</script>
 </body>
 </html>
