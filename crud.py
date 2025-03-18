@@ -23,10 +23,11 @@ async def get_tasks(db: AsyncSession, user_id: int, date: Optional[date] = None)
         query = select(Task).where(Task.user_id == user_id)
         if date:
             start_of_day = datetime.combine(date, datetime.min.time()).replace(tzinfo=timezone.utc)
-            next_day = start_of_day + timedelta(days=1)
+            end_of_day = start_of_day + timedelta(days=1)
             query = query.where(
                 and_(
-                    func.date_trunc('day', Task.deadline) == start_of_day
+                    Task.deadline >= start_of_day,
+                    Task.deadline < end_of_day
                 )
             )
         result = await db.execute(query)
@@ -40,16 +41,18 @@ async def create_task(db: AsyncSession, user_id: int, title: str, description: O
                      completed: bool = False):
     logger.info(f"Создание задачи для user_id={user_id}, title={title}")
     try:
-        existing_task = await db.execute(
-            select(Task).where(
-                Task.user_id == user_id,
-                Task.title == title,
-                Task.created_at >= datetime.utcnow() - timedelta(minutes=1)
-            )
+        # Проверка на дубликаты
+        query = select(Task).where(
+            Task.user_id == user_id,
+            Task.title == title,
+            Task.created_at >= datetime.now(timezone.utc) - timedelta(minutes=1)
         )
-        if existing_task.scalars().first():
+        result = await db.execute(query)
+        existing_task = result.scalars().first()
+        
+        if existing_task:
             logger.info("Задача с таким названием уже существует, пропускаем создание.")
-            return existing_task.scalars().first()
+            return existing_task
 
         deadline_dt = None
         if deadline:
@@ -90,9 +93,11 @@ async def delete_task(db: AsyncSession, user_id: int, task_id: int):
             return None
         await db.delete(task)
         await db.commit()
+        logger.info(f"Задача успешно удалена: task_id={task_id}, user_id={user_id}")
         return task
     except Exception as e:
         logger.error(f"Ошибка при удалении задачи task_id={task_id}: {str(e)}")
+        await db.rollback()
         raise
 
 async def update_task(db: AsyncSession, user_id: int, task_id: int, **kwargs):
@@ -101,6 +106,7 @@ async def update_task(db: AsyncSession, user_id: int, task_id: int, **kwargs):
         if not task or task.user_id != user_id:
             logger.warning(f"Задача с task_id={task_id} не найдена или не принадлежит user_id={user_id}")
             return None
+            
         for key, value in kwargs.items():
             if value is not None:
                 if key == "deadline" and value:
@@ -114,9 +120,12 @@ async def update_task(db: AsyncSession, user_id: int, task_id: int, **kwargs):
                         logger.error(f"Неверный формат deadline в обновлении: {value}, ошибка: {str(e)}")
                         raise ValueError(f"Неверный формат deadline: {value}")
                 setattr(task, key, value)
+                
         await db.commit()
         await db.refresh(task)
+        logger.info(f"Задача успешно обновлена: task_id={task_id}, user_id={user_id}")
         return task
     except Exception as e:
         logger.error(f"Ошибка при обновлении задачи task_id={task_id}: {str(e)}")
+        await db.rollback()
         raise
