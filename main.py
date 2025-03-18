@@ -5,8 +5,8 @@ from sqlalchemy.future import select
 from database import get_db, engine
 from models import Base
 from crud import get_tasks, create_task, delete_task, update_task
-from pydantic import BaseModel
-from typing import Optional
+from pydantic import BaseModel, Field
+from typing import Optional, List
 from datetime import datetime, date
 from enum import StrEnum
 from contextlib import asynccontextmanager
@@ -38,6 +38,7 @@ class TaskOut(BaseModel):
     reminder: bool
     completed: bool
     created_at: datetime
+    user_id: int
 
     class Config:
         from_attributes = True
@@ -46,9 +47,13 @@ class TaskUpdate(BaseModel):
     title: Optional[str] = None
     description: Optional[str] = None
     deadline: Optional[str] = None
-    priority: Optional[str] = None
+    priority: Optional[Priority] = None
     reminder: Optional[bool] = None
     completed: Optional[bool] = None
+
+class HealthResponse(BaseModel):
+    status: str
+    database: str
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -59,10 +64,18 @@ async def lifespan(app: FastAPI):
     except Exception as e:
         logger.error(f"Ошибка при создании таблиц базы данных: {str(e)}")
         raise
-    start_scheduler()  # Запускаем планировщик
+    
+    scheduler = start_scheduler()  # Запускаем планировщик
     yield
+    # Останавливаем планировщик при завершении работы приложения
+    scheduler.shutdown()
 
-app = FastAPI(lifespan=lifespan)
+app = FastAPI(
+    title="Task Manager API",
+    description="API для управления задачами пользователей",
+    version="1.0.0",
+    lifespan=lifespan
+)
 
 app.add_middleware(
     CORSMiddleware,
@@ -74,12 +87,14 @@ app.add_middleware(
 
 @app.middleware("http")
 async def log_requests(request: Request, call_next):
+    start_time = datetime.now()
     logger.info(f"Получен запрос: {request.method} {request.url}")
     response = await call_next(request)
-    logger.info(f"Ответ: статус {response.status_code}")
+    process_time = datetime.now() - start_time
+    logger.info(f"Ответ: статус {response.status_code}, время обработки: {process_time.total_seconds():.3f}s")
     return response
 
-@app.get("/health")
+@app.get("/health", response_model=HealthResponse, tags=["System"])
 async def health_check(db: AsyncSession = Depends(get_db)):
     try:
         await db.execute(select(1))
@@ -88,12 +103,16 @@ async def health_check(db: AsyncSession = Depends(get_db)):
         logger.error(f"Ошибка проверки состояния: {str(e)}")
         raise HTTPException(status_code=500, detail="Ошибка проверки состояния")
 
-@app.get("/")
+@app.get("/", tags=["General"])
 async def root():
     return {"message": "Добро пожаловать в Task Manager! Используйте /tasks для списка задач."}
 
-@app.get("/tasks", response_model=list[TaskOut])
-async def read_tasks(user_id: int, date: Optional[date] = None, db: AsyncSession = Depends(get_db)):
+@app.get("/tasks", response_model=List[TaskOut], tags=["Tasks"])
+async def read_tasks(
+    user_id: int, 
+    date: Optional[date] = None, 
+    db: AsyncSession = Depends(get_db)
+):
     try:
         tasks = await get_tasks(db, user_id=user_id, date=date)
         return tasks
@@ -101,8 +120,12 @@ async def read_tasks(user_id: int, date: Optional[date] = None, db: AsyncSession
         logger.error(f"Ошибка в read_tasks: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Не удалось получить задачи: {str(e)}")
 
-@app.post("/tasks", response_model=TaskOut)
-async def create_new_task(task: TaskCreate, user_id: int, db: AsyncSession = Depends(get_db)):
+@app.post("/tasks", response_model=TaskOut, tags=["Tasks"])
+async def create_new_task(
+    task: TaskCreate, 
+    user_id: int, 
+    db: AsyncSession = Depends(get_db)
+):
     try:
         new_task = await create_task(
             db,
@@ -122,23 +145,35 @@ async def create_new_task(task: TaskCreate, user_id: int, db: AsyncSession = Dep
         logger.error(f"Ошибка в create_new_task: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Не удалось создать задачу: {str(e)}")
 
-@app.delete("/tasks/{task_id}")
-async def delete_task_endpoint(task_id: int, user_id: int, db: AsyncSession = Depends(get_db)):
+@app.delete("/tasks/{task_id}", tags=["Tasks"])
+async def delete_task_endpoint(
+    task_id: int, 
+    user_id: int, 
+    db: AsyncSession = Depends(get_db)
+):
     try:
         task = await delete_task(db, user_id=user_id, task_id=task_id)
         if not task:
             raise HTTPException(status_code=404, detail="Задача не найдена или не принадлежит пользователю")
-        return {"message": "Задача удалена"}
+        return {"message": "Задача удалена", "id": task_id}
     except Exception as e:
         logger.error(f"Ошибка в delete_task_endpoint: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Не удалось удалить задачу: {str(e)}")
 
-@app.patch("/tasks/{task_id}", response_model=TaskOut)
-async def update_task_endpoint(task_id: int, task_update: TaskUpdate, user_id: int, 
-                              db: AsyncSession = Depends(get_db)):
+@app.patch("/tasks/{task_id}", response_model=TaskOut, tags=["Tasks"])
+async def update_task_endpoint(
+    task_id: int, 
+    task_update: TaskUpdate, 
+    user_id: int, 
+    db: AsyncSession = Depends(get_db)
+):
     try:
-        task = await update_task(db, user_id=user_id, task_id=task_id, 
-                                **task_update.dict(exclude_unset=True))
+        task = await update_task(
+            db, 
+            user_id=user_id, 
+            task_id=task_id, 
+            **task_update.model_dump(exclude_unset=True)
+        )
         if not task:
             raise HTTPException(status_code=404, detail="Задача не найдена или не принадлежит пользователю")
         return task
